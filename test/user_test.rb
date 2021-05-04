@@ -10,7 +10,7 @@ class UserTest < Minitest::Test
   end
 
   def test_that_a_user_raises_exception_with_invalid_id
-    assert_raises Birdsong::Error do
+    assert_raises Birdsong::InvalidIdError do
       Birdsong::User.lookup("abcdef")
     end
   end

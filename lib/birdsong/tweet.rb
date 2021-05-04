@@ -9,7 +9,7 @@ module Birdsong
       ids = [ids] unless ids.kind_of?(Array)
 
       # Check that the ids are at least real ids
-      ids.each { |id| raise Birdsong::Error if !/\A\d+\z/.match(id) }
+      ids.each { |id| raise Birdsong::InvalidIdError if !/\A\d+\z/.match(id) }
 
       response = self.retrieve_data(ids)
       raise Birdsong::AuthorizationError("Invalid response code #{response.code}") unless response.code == 200
@@ -62,7 +62,7 @@ module Birdsong
       }
 
       response = tweet_lookup(tweet_lookup_url, bearer_token, params)
-      raise AuthorizationError("Invalid response code #{response.code}") unless response.code === 200
+      raise Birdsong::AuthorizationError("Invalid response code #{response.code}") unless response.code === 200
       # puts response.code, JSON.pretty_generate(JSON.parse(response.body))
       response
     end
@@ -79,6 +79,8 @@ module Birdsong
 
       request = Typhoeus::Request.new(url, options)
       response = request.run
+
+      raise Birdsong::AuthorizationError("Invalid response code #{response.code}") unless response.code === 200
 
       response
     end
