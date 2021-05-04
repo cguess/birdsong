@@ -13,6 +13,8 @@ module Birdsong
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
 
       json_response = JSON.parse(response.body)
+      return [] if json_response["data"].nil?
+
       json_response["data"].map do |json_user|
         User.new(json_user)
       end

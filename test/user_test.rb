@@ -23,4 +23,9 @@ class UserTest < Minitest::Test
     assert_equal user.name, "Frederik Obermaier"
     assert_equal user.location, "Threema FPN4FKZE  | PGP"
   end
+
+   def test_that_a_tweet_cant_be_found_works
+    tweet = Birdsong::User.lookup("abcdef")
+    assert tweet.empty?
+  end
 end
