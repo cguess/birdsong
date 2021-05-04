@@ -12,6 +12,7 @@ require_relative "birdsong/user"
 
 module Birdsong
   class Error < StandardError; end
+  class AuthorizationError < Error; end
 
   # The general fields to always return for Users
   def self.user_fields

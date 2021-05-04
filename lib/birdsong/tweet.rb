@@ -12,7 +12,7 @@ module Birdsong
       ids.each { |id| raise Birdsong::Error if !/\A\d+\z/.match(id) }
 
       response = self.retrieve_data(ids)
-      raise Birdsong::Error unless response.code == 200
+      raise Birdsong::AuthorizationError("Invalid response code #{response.code}") unless response.code == 200
 
       json_response = JSON.parse(response.body)
       json_response["data"].map do |json_tweet|
@@ -62,7 +62,8 @@ module Birdsong
       }
 
       response = tweet_lookup(tweet_lookup_url, bearer_token, params)
-      puts response.code, JSON.pretty_generate(JSON.parse(response.body))
+      raise AuthorizationError("Invalid response code #{response.code}") unless response.code === 200
+      # puts response.code, JSON.pretty_generate(JSON.parse(response.body))
       response
     end
 
