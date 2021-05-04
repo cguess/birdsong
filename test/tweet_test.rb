@@ -22,4 +22,9 @@ class TweetTest < Minitest::Test
     assert_equal tweet.text, "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko"
     assert_equal tweet.language, "en"
   end
+
+  def test_that_a_tweet_cant_be_found_works
+    tweet = Birdsong::Tweet.lookup("19")
+    assert tweet.empty?
+  end
 end

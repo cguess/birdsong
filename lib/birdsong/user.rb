@@ -10,7 +10,7 @@ module Birdsong
       ids.each { |id| raise Birdsong::InvalidIdError if !/\A\d+\z/.match(id) }
 
       response = self.retrieve_data(ids)
-      raise Birdsong::AuthorizationError unless response.code == 200
+      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
 
       json_response = JSON.parse(response.body)
       json_response["data"].map do |json_user|
@@ -65,7 +65,7 @@ module Birdsong
 
       response = self.user_lookup(user_lookup_url, bearer_token, params)
       # puts response.code, JSON.pretty_generate(JSON.parse(response.body))
-      raise Birdsong::AuthorizationError unless response.code == 200
+      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
 
       response
     end
@@ -82,7 +82,7 @@ module Birdsong
 
       request = Typhoeus::Request.new(url, options)
       response = request.run
-      raise Birdsong::AuthorizationError unless response.code == 200
+      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
 
       response
     end
