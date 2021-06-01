@@ -25,9 +25,18 @@ module Birdsong
     attr_reader :id
     attr_reader :name
     attr_reader :username
-    attr_reader :created_at
+    attr_reader :sign_up_date
     attr_reader :location
     attr_reader :profile_image_url
+    attr_reader :description
+    attr_reader :url
+    attr_reader :followers_count
+    attr_reader :following_count
+    attr_reader :tweet_count
+    attr_reader :listed_count
+    attr_reader :verified
+    attr_reader :created_at
+    attr_reader :profile_image_file_name
 
   private
 
@@ -42,7 +51,15 @@ module Birdsong
       @username = json_user["username"]
       @created_at = DateTime.parse(json_user["created_at"])
       @location = json_user["location"]
-      @profile_image_url = URI(json_user["profile_image_url"])
+      @profile_image_url = json_user["profile_image_url"]
+      @description = json_user["description"]
+      @url = json_user["url"]
+      @followers_count = json_user["public_metrics"]["followers_count"]
+      @following_count = json_user["public_metrics"]["following_count"]
+      @tweet_count = json_user["public_metrics"]["tweet_count"]
+      @listed_count = json_user["public_metrics"]["listed_count"]
+      @verified = json_user["verified"]
+      @profile_image_file_name = Birdsong.retrieve_image(@profile_image_url)
     end
 
     def self.retrieve_data(ids)
@@ -60,9 +77,6 @@ module Birdsong
         "expansions": "pinned_tweet_id",
         "tweet.fields": Birdsong.tweet_fields,
         "user.fields": Birdsong.user_fields,
-        # "media.fields": "url",
-        # "place.fields": "country_code",
-        # "poll.fields": "options"
       }
 
       response = self.user_lookup(user_lookup_url, bearer_token, params)

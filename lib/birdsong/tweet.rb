@@ -28,6 +28,8 @@ module Birdsong
     attr_reader :created_at
     attr_reader :text
     attr_reader :language
+    attr_reader :author_id
+    attr_reader :author
 
   private
 
@@ -41,6 +43,11 @@ module Birdsong
       @created_at = DateTime.parse(json_tweet["created_at"])
       @text = json_tweet["text"]
       @language = json_tweet["lang"]
+      @author_id = json_tweet["author_id"]
+
+      # Look up the author given the new id.
+      # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
+      @author = User.lookup(@author_id).first
     end
 
     def self.retrieve_data(ids)

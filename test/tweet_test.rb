@@ -4,6 +4,13 @@ require "test_helper"
 require "date"
 
 class TweetTest < Minitest::Test
+  def teardown
+    # Delete the temp folder that'll be created here
+    if File.exist?("tmp") && File.directory?("tmp")
+      FileUtils.rm_r "tmp"
+    end
+  end
+
   def test_that_a_tweet_is_created_with_id
     tweets = Birdsong::Tweet.lookup("1378268627615543296")
     tweets.each { |tweet| assert_instance_of Birdsong::Tweet, tweet }
@@ -21,6 +28,7 @@ class TweetTest < Minitest::Test
     assert_equal tweet.created_at, DateTime.parse("2021-04-03T08:50:22.000Z")
     assert_equal tweet.text, "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko"
     assert_equal tweet.language, "en"
+    assert_equal tweet.author.name, "Frederik Obermaier"
   end
 
   def test_that_a_tweet_cant_be_found_works
