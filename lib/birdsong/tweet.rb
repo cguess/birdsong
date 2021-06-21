@@ -18,7 +18,7 @@ module Birdsong
       return [] if json_response["data"].nil?
 
       json_response["data"].map do |json_tweet|
-        Tweet.new(json_tweet)
+        Tweet.new(json_tweet, json_response["includes"])
       end
     end
 
@@ -33,17 +33,25 @@ module Birdsong
 
   private
 
-    def initialize(json_tweet)
+    def initialize(json_tweet, includes)
       @json = json_tweet
-      parse(json_tweet)
+      parse(json_tweet, includes)
     end
 
-    def parse(json_tweet)
+    def parse(json_tweet, includes)
       @id = json_tweet["id"]
       @created_at = DateTime.parse(json_tweet["created_at"])
       @text = json_tweet["text"]
       @language = json_tweet["lang"]
       @author_id = json_tweet["author_id"]
+
+      media_items = includes["media"].filter do |media_item|
+        json_tweet["attachments"]["media_keys"].include? media_item["media_key"]
+      end
+
+      byebug
+
+      @image_file_name = Birdsong.retrieve_image(@profile_image_url)
 
       # Look up the author given the new id.
       # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
@@ -62,10 +70,10 @@ module Birdsong
       # https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference
       params = {
         "ids": tweet_ids,
-        "expansions": "author_id,referenced_tweets.id",
+        "expansions": "attachments.media_keys,author_id,referenced_tweets.id",
         "tweet.fields": Birdsong.tweet_fields,
         "user.fields": Birdsong.user_fields,
-        "media.fields": "url",
+        "media.fields": "duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width",
         "place.fields": "country_code",
         "poll.fields": "options"
       }
