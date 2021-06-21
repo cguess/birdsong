@@ -24,11 +24,10 @@ class UserTest < Minitest::Test
     user = Birdsong::User.lookup("404661154").first
     assert_equal user.id, "404661154"
     assert_equal user.created_at, DateTime.parse("2011-11-04T07:18:35.000Z")
-    assert_equal user.profile_image_url, "https://pbs.twimg.com/profile_images/1140973306889277440/q3P0CIh6_normal.jpg"
+    assert_equal user.profile_image_url, "https://pbs.twimg.com/profile_images/1140973306889277440/q3P0CIh6.jpg"
     assert_equal user.name, "Frederik Obermaier"
     assert_equal user.username, "f_obermaier"
     assert_equal user.location, "Threema FPN4FKZE  | PGP"
-    assert_equal user.profile_image_url, "https://pbs.twimg.com/profile_images/1140973306889277440/q3P0CIh6_normal.jpg"
     assert_equal user.description, "investigative journalist | pulitzer prize | received w @b_obermayer the @PanamaPapers #StracheVideo | deputy @sz_investigativ | @icijorg @acdatacollectiv"
     assert_equal user.url, "http://www.frederikobermaier.com"
     assert_kind_of Integer, user.followers_count

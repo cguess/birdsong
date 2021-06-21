@@ -51,7 +51,10 @@ module Birdsong
       @username = json_user["username"]
       @created_at = DateTime.parse(json_user["created_at"])
       @location = json_user["location"]
-      @profile_image_url = json_user["profile_image_url"]
+
+      # Removing the "normal" here gets us the full-sized image, instead of the 150x150 thumbnail
+      @profile_image_url = json_user["profile_image_url"].sub!("_normal", "")
+
       @description = json_user["description"]
       @url = json_user["url"]
       @followers_count = json_user["public_metrics"]["followers_count"]

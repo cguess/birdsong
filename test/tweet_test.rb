@@ -5,10 +5,7 @@ require "date"
 
 class TweetTest < Minitest::Test
   def teardown
-    # Delete the temp folder that'll be created here
-    if File.exist?("tmp") && File.directory?("tmp")
-      FileUtils.rm_r "tmp"
-    end
+    cleanup_temp_folder
   end
 
   def test_that_a_tweet_is_created_with_id
