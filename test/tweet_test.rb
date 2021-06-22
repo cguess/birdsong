@@ -29,7 +29,29 @@ class TweetTest < Minitest::Test
   end
 
   def test_that_a_tweet_cant_be_found_works
-    tweet = Birdsong::Tweet.lookup("19")
-    assert tweet.empty?
+    assert_raises Birdsong::NoTweetFoundError do
+      Birdsong::Tweet.lookup("19")
+    end
+  end
+
+  def test_that_a_tweet_can_have_a_single_image
+    tweet = Birdsong::Tweet.lookup("1407341650737762304").first
+    assert_not_nil tweet.image_file_names
+    assert_equal 1, tweet.image_file_names.count
+    assert_equal 0, tweet.video_file_names.count
+  end
+
+  def test_that_a_tweet_can_have_a_slideshow
+    tweet = Birdsong::Tweet.lookup("1407322444399099904").first
+    assert_not_nil tweet.image_file_names
+    assert_equal 4, tweet.image_file_names.count
+    assert_equal 0, tweet.video_file_names.count
+  end
+
+  def test_that_a_tweet_can_have_a_video
+    tweet = Birdsong::Tweet.lookup("1407342630837657605").first
+    assert_not_nil tweet.video_file_names
+    assert_equal 1, tweet.video_file_names.count
+    assert_equal 0, tweet.image_file_names.count
   end
 end

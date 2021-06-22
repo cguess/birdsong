@@ -62,7 +62,7 @@ module Birdsong
       @tweet_count = json_user["public_metrics"]["tweet_count"]
       @listed_count = json_user["public_metrics"]["listed_count"]
       @verified = json_user["verified"]
-      @profile_image_file_name = Birdsong.retrieve_image(@profile_image_url)
+      @profile_image_file_name = Birdsong.retrieve_media(@profile_image_url)
     end
 
     def self.retrieve_data(ids)
