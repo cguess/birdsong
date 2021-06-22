@@ -18,6 +18,8 @@ module Birdsong
   class Error < StandardError; end
   class AuthorizationError < Error; end
   class InvalidIdError < Error; end
+  class InvalidMediaTypeError < Error; end
+  class NoTweetFoundError < Error; end
 
   define_setting :temp_storage_location, "tmp/birdsong"
 
@@ -31,9 +33,9 @@ module Birdsong
     "attachments,author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang"
   end
 
-  # Get an image from a URL and save to a temp folder set in the configuration under
+  # Get media from a URL and save to a temp folder set in the configuration under
   # temp_storage_location
-  def self.retrieve_image(url)
+  def self.retrieve_media(url)
     response = Typhoeus.get(url)
 
     # Get the file extension if it's in the file

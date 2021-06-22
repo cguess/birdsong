@@ -8,32 +8,50 @@ class TweetTest < Minitest::Test
     cleanup_temp_folder
   end
 
-  # def test_that_a_tweet_is_created_with_id
-  #   tweets = Birdsong::Tweet.lookup("1378268627615543296")
-  #   tweets.each { |tweet| assert_instance_of Birdsong::Tweet, tweet }
-  # end
+  def test_that_a_tweet_is_created_with_id
+    tweets = Birdsong::Tweet.lookup("1378268627615543296")
+    tweets.each { |tweet| assert_instance_of Birdsong::Tweet, tweet }
+  end
 
-  # def test_that_a_tweet_raises_exception_with_invalid_id
-  #   assert_raises Birdsong::InvalidIdError do
-  #     Birdsong::Tweet.lookup("abcdef")
-  #   end
-  # end
+  def test_that_a_tweet_raises_exception_with_invalid_id
+    assert_raises Birdsong::InvalidIdError do
+      Birdsong::Tweet.lookup("abcdef")
+    end
+  end
 
-  # def test_that_a_tweet_has_correct_attributes
-  #   tweet = Birdsong::Tweet.lookup("1378268627615543296").first
-  #   assert_equal tweet.id, "1378268627615543296"
-  #   assert_equal tweet.created_at, DateTime.parse("2021-04-03T08:50:22.000Z")
-  #   assert_equal tweet.text, "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko"
-  #   assert_equal tweet.language, "en"
-  #   assert_equal tweet.author.name, "Frederik Obermaier"
-  # end
+  def test_that_a_tweet_has_correct_attributes
+    tweet = Birdsong::Tweet.lookup("1378268627615543296").first
+    assert_equal tweet.id, "1378268627615543296"
+    assert_equal tweet.created_at, DateTime.parse("2021-04-03T08:50:22.000Z")
+    assert_equal tweet.text, "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko"
+    assert_equal tweet.language, "en"
+    assert_equal tweet.author.name, "Frederik Obermaier"
+  end
 
-  # def test_that_a_tweet_cant_be_found_works
-  #   tweet = Birdsong::Tweet.lookup("19")
-  #   assert tweet.empty?
-  # end
+  def test_that_a_tweet_cant_be_found_works
+    assert_raises Birdsong::NoTweetFoundError do
+      Birdsong::Tweet.lookup("19")
+    end
+  end
+
+  def test_that_a_tweet_can_have_a_single_image
+    tweet = Birdsong::Tweet.lookup("1407341650737762304").first
+    assert_not_nil tweet.image_file_names
+    assert_equal 1, tweet.image_file_names.count
+    assert_equal 0, tweet.video_file_names.count
+  end
 
   def test_that_a_tweet_can_have_a_slideshow
-    tweet = Birdsong::Tweet.lookup("1407031731547525120")
+    tweet = Birdsong::Tweet.lookup("1407322444399099904").first
+    assert_not_nil tweet.image_file_names
+    assert_equal 4, tweet.image_file_names.count
+    assert_equal 0, tweet.video_file_names.count
+  end
+
+  def test_that_a_tweet_can_have_a_video
+    tweet = Birdsong::Tweet.lookup("1407342630837657605").first
+    assert_not_nil tweet.video_file_names
+    assert_equal 1, tweet.video_file_names.count
+    assert_equal 0, tweet.image_file_names.count
   end
 end
