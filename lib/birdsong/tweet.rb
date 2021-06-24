@@ -69,10 +69,10 @@ module Birdsong
           response = JSON.parse(response.body)
 
           # The API response is pretty deeply nested, but this handles that structure
-          video_urls = response["extended_entities"]["media"].map do |entity|
+          largest_bitrate_variant = nil
+          response["extended_entities"]["media"].each do |entity|
             # The API returns multiple different resolutions usually. Since we only want to archive
             # the largest we'll run through and find it
-            largest_bitrate_variant = nil
             entity["video_info"]["variants"].each do |variant|
               # There may be a .m3u playlist (for streaming I'm guessing), but we don't want that.
               next unless variant["content_type"] == "video/mp4"
@@ -81,11 +81,9 @@ module Birdsong
                 largest_bitrate_variant = variant
               end
             end
-
-            largest_bitrate_variant["url"]
           end
 
-          video_urls.map { |video_url| Birdsong.retrieve_media(video_url) }
+          Birdsong.retrieve_media(largest_bitrate_variant["url"])
         end.compact # compact because of the `next` above will return `nil`
       else
         @image_file_names = []
