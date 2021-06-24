@@ -21,11 +21,12 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_has_correct_attributes
     tweet = Birdsong::Tweet.lookup("1378268627615543296").first
-    assert_equal tweet.id, "1378268627615543296"
-    assert_equal tweet.created_at, DateTime.parse("2021-04-03T08:50:22.000Z")
-    assert_equal tweet.text, "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko"
-    assert_equal tweet.language, "en"
-    assert_equal tweet.author.name, "Frederik Obermaier"
+    assert_equal   tweet.id, "1378268627615543296"
+    assert_equal   tweet.created_at, DateTime.parse("2021-04-03T08:50:22.000Z")
+    assert_equal   tweet.text, "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko"
+    assert_equal   tweet.language, "en"
+    assert_equal   tweet.author.name, "Frederik Obermaier"
+    assert_not_nil tweet.image_file_names
   end
 
   def test_that_a_tweet_cant_be_found_works
@@ -49,7 +50,7 @@ class TweetTest < Minitest::Test
   end
 
   def test_that_a_tweet_can_have_a_video
-    tweet = Birdsong::Tweet.lookup("1407342630837657605").first
+    tweet = Birdsong::Tweet.lookup("1258817692448051200").first
     assert_not_nil tweet.video_file_names
     assert_equal 1, tweet.video_file_names.count
     assert_equal 0, tweet.image_file_names.count

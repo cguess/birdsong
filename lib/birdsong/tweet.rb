@@ -49,40 +49,48 @@ module Birdsong
       @language = json_tweet["lang"]
       @author_id = json_tweet["author_id"]
 
-      # A sanity check to make sure we have everything in there correctly
-      media_items = includes["media"].filter do |media_item|
-        json_tweet["attachments"]["media_keys"].include? media_item["media_key"]
-      end
-
-      @image_file_names = media_items.map do |media_item|
-        next unless media_item["type"] == "photo"
-        Birdsong.retrieve_media(media_item["url"])
-      end.compact # compact because of the `next` above will return `nil`
-
-      @video_file_names = media_items.map do |media_item|
-        next unless media_item["type"] == "video"
-
-        # If the media is video we need to fall back to V1 of the API since V2 doesn't support
-        # videos yet. This is dumb, but not a big deal.
-        response = Tweet.retrieve_data_v1(@id)
-        response = JSON.parse(response.body)
-
-        # The API response is pretty deeply nested, but this handles that structure
-        video_urls = response["extended_entities"]["media"].map do |entity|
-          # The API returns multiple different resolutions usually. Since we only want to archive
-          # the largest we'll run through and find it
-          largest_bitrate_variant = nil
-          entity["video_info"]["variants"].each do |variant|
-            if largest_bitrate_variant.nil? || largest_bitrate_variant["bitrate"] < largest_bitrate_variant["bitrate"]
-              largest_bitrate_variant = variant
-            end
-          end
-
-          largest_bitrate_variant["url"]
+      unless includes["media"].nil?
+        # A sanity check to make sure we have everything in there correctly
+        media_items = includes["media"].filter do |media_item|
+          json_tweet["attachments"]["media_keys"].include? media_item["media_key"]
         end
 
-        video_urls.map { |video_url| Birdsong.retrieve_media(video_url) }
-      end.compact # compact because of the `next` above will return `nil`
+        @image_file_names = media_items.map do |media_item|
+          next unless media_item["type"] == "photo"
+          Birdsong.retrieve_media(media_item["url"])
+        end.compact # compact because of the `next` above will return `nil`
+
+        @video_file_names = media_items.map do |media_item|
+          next unless media_item["type"] == "video"
+
+          # If the media is video we need to fall back to V1 of the API since V2 doesn't support
+          # videos yet. This is dumb, but not a big deal.
+          response = Tweet.retrieve_data_v1(@id)
+          response = JSON.parse(response.body)
+
+          # The API response is pretty deeply nested, but this handles that structure
+          video_urls = response["extended_entities"]["media"].map do |entity|
+            # The API returns multiple different resolutions usually. Since we only want to archive
+            # the largest we'll run through and find it
+            largest_bitrate_variant = nil
+            entity["video_info"]["variants"].each do |variant|
+              # There may be a .m3u playlist (for streaming I'm guessing), but we don't want that.
+              next unless variant["content_type"] == "video/mp4"
+
+              if largest_bitrate_variant.nil? || (largest_bitrate_variant["bitrate"] < variant["bitrate"])
+                largest_bitrate_variant = variant
+              end
+            end
+
+            largest_bitrate_variant["url"]
+          end
+
+          video_urls.map { |video_url| Birdsong.retrieve_media(video_url) }
+        end.compact # compact because of the `next` above will return `nil`
+      else
+        @image_file_names = []
+        @video_file_names = []
+      end
 
       # Look up the author given the new id.
       # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
