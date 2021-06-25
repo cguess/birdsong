@@ -49,9 +49,13 @@ module Birdsong
       @language = json_tweet["lang"]
       @author_id = json_tweet["author_id"]
 
-      # A sanity check to make sure we have everything in there correctly
-      media_items = includes["media"].filter do |media_item|
-        json_tweet["attachments"]["media_keys"].include? media_item["media_key"]
+      # A sanity check to make sure we have media in there correctly
+      if includes.has_key? "media"
+        media_items = includes["media"].filter do |media_item|
+          json_tweet["attachments"]["media_keys"].include? media_item["media_key"]
+        end
+      else
+        media_items = []
       end
 
       @image_file_names = media_items.map do |media_item|
