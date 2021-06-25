@@ -34,6 +34,13 @@ class TweetTest < Minitest::Test
     end
   end
 
+  def test_that_a_tweet_can_have_no_media
+    tweet = Birdsong::Tweet.lookup("20").first
+    assert_equal tweet.id, "20"
+    assert_not_nil tweet.image_file_names
+    assert_equal 0, tweet.image_file_names.count
+  end
+
   def test_that_a_tweet_can_have_a_single_image
     tweet = Birdsong::Tweet.lookup("1407341650737762304").first
     assert_not_nil tweet.image_file_names
