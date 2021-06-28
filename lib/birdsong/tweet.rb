@@ -68,25 +68,35 @@ module Birdsong
         response = JSON.parse(response.body)
 
         # The API response is pretty deeply nested, but this handles that structure
-        video_urls = response["extended_entities"]["media"].map do |entity|
-          # The API returns multiple different resolutions usually. Since we only want to archive
-          # the largest we'll run through and find it
-          largest_bitrate_variant = nil
-          entity["video_info"]["variants"].each do |variant|
-            if largest_bitrate_variant.nil? || largest_bitrate_variant["bitrate"] < largest_bitrate_variant["bitrate"]
-              largest_bitrate_variant = variant
-            end
-          end
+        video_url = get_largest_variant_url(response["extended_entities"]["media"])
 
-          largest_bitrate_variant["url"]
-        end
-
-        video_urls.map { |video_url| Birdsong.retrieve_media(video_url) }
+        # We're returning an array because, in the case that someday more videos are available our
+        # implementations won't breaks
+        [Birdsong.retrieve_media(video_url)]
       end.compact # compact because of the `next` above will return `nil`
 
       # Look up the author given the new id.
       # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
       @author = User.lookup(@author_id).first
+    end
+
+    def get_largest_variant_url(media_items)
+      # The API response is pretty deeply nested, but this handles that structure
+      largest_bitrate_variant = nil
+      media_items.each do |media_item|
+        # The API returns multiple different resolutions usually. Since we only want to archive
+        # the largest we'll run through and find it
+        media_item["video_info"]["variants"].each do |variant|
+          # Usually there's constant bitrate variants, and sometimes, a .m3u playlist which is for
+          # streaming. We want to ignore that one here.
+          next unless variant&.keys.include?("bitrate")
+
+          if largest_bitrate_variant.nil? || largest_bitrate_variant["bitrate"] < variant["bitrate"]
+            largest_bitrate_variant = variant
+          end
+        end
+      end
+      largest_bitrate_variant["url"]
     end
 
     def self.retrieve_data_v2(ids)
