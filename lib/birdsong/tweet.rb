@@ -34,6 +34,7 @@ module Birdsong
     attr_reader :author
     attr_reader :image_file_names
     attr_reader :video_file_names
+    attr_reader :video_file_type
 
   private
 
@@ -64,24 +65,29 @@ module Birdsong
       end.compact # compact because of the `next` above will return `nil`
 
       @video_file_names = media_items.map do |media_item|
-        next unless media_item["type"] == "video"
-
+        next unless (media_item["type"] == "video") || (media_item["type"] == "animated_gif")
+       
         # If the media is video we need to fall back to V1 of the API since V2 doesn't support
         # videos yet. This is dumb, but not a big deal.
-        response = Tweet.retrieve_data_v1(@id)
-        response = JSON.parse(response.body)
-
-        # The API response is pretty deeply nested, but this handles that structure
-        video_url = get_largest_variant_url(response["extended_entities"]["media"])
+        media_url = get_media_url_from_extended_entities()
+        @video_file_type = media_item["type"]
 
         # We're returning an array because, in the case that someday more videos are available our
         # implementations won't breaks
-        [Birdsong.retrieve_media(video_url)]
+        [Birdsong.retrieve_media(media_url)]
       end.compact # compact because of the `next` above will return `nil`
 
       # Look up the author given the new id.
       # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
       @author = User.lookup(@author_id).first
+    end
+
+    # Used to extract a GIF or video URL from the extended entities object in the Twiter API response
+    # Assumes (as is the case right now) that a Tweet cannot have more than one GIF/video
+    def get_media_url_from_extended_entities()
+      response = Tweet.retrieve_data_v1(@id)
+      response = JSON.parse(response.body)
+      get_largest_variant_url(response["extended_entities"]["media"]) 
     end
 
     def get_largest_variant_url(media_items)
