@@ -61,6 +61,7 @@ class TweetTest < Minitest::Test
     assert_not_nil tweet.video_file_names
     assert_equal 1, tweet.video_file_names.count
     assert_equal 0, tweet.image_file_names.count
+    assert_equal "video", tweet.video_file_type
   end
 
   def test_that_a_tweet_handles_no_variants_for_video
@@ -68,5 +69,13 @@ class TweetTest < Minitest::Test
     assert_not_nil tweet.video_file_names
     assert_equal 1, tweet.video_file_names.count
     assert_equal 0, tweet.image_file_names.count
+  end
+
+  def test_that_a_tweet_can_have_a_gif
+    tweet = Birdsong::Tweet.lookup("1472873480249131012").first
+    assert_not_nil tweet.video_file_names
+    assert_equal 0, tweet.image_file_names.count
+    assert_equal 1, tweet.video_file_names.count
+    assert_equal "animated_gif", tweet.video_file_type
   end
 end

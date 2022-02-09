@@ -11,7 +11,11 @@ gem "minitest", "~> 5.0"
 
 gem "rubocop", "~> 1.7"
 
-gem "rubocop-rails", "~> 2.9.1", require: false # Rails specific styles
+gem "rubocop-rails", "~> 2.9.1"
+
+gem "rubocop-rails_config", "~> 1.8.1"
+
+gem "rubocop-performance", "~> 1.13.2"
 
 gem "rubocop-rails_config", "~> 1.8.1"
 
