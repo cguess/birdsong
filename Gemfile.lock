@@ -43,11 +43,6 @@ GEM
       nokogiri (>= 1.5.9)
     method_source (1.0.0)
     minitest (5.15.0)
-<<<<<<< HEAD
-    nokogiri (1.13.1-arm64-darwin)
-      racc (~> 1.4)
-=======
->>>>>>> 9264ea5 (Upgrade to ruby 3.1.0 (#6))
     nokogiri (1.13.1-x86_64-darwin)
       racc (~> 1.4)
     nokogiri (1.13.1-x86_64-linux)

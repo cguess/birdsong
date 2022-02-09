@@ -1,9 +1,5 @@
 require:
-<<<<<<< HEAD
   - rubocop-rails
-=======
-  - rubocop-performance
->>>>>>> 9264ea5 (Upgrade to ruby 3.1.0 (#6))
 
 inherit_gem:
   rubocop-rails_config:
