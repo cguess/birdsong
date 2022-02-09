@@ -65,7 +65,7 @@ module Birdsong
       end.compact # compact because of the `next` above will return `nil`
 
       @video_file_names = media_items.map do |media_item|
-        next unless (media_item["type"] == "video") || (media_item["type"] == "animated_gif")
+        next unless media_item["type"] == "video" || media_item["type"] == "animated_gif"
        
         # If the media is video we need to fall back to V1 of the API since V2 doesn't support
         # videos yet. This is dumb, but not a big deal.

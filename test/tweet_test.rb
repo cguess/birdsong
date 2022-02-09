@@ -73,7 +73,6 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_can_have_a_gif
     tweet = Birdsong::Tweet.lookup("1472873480249131012").first
-    byebug
     assert_not_nil tweet.video_file_names
     assert_equal 0, tweet.image_file_names.count
     assert_equal 1, tweet.video_file_names.count
