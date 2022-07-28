@@ -28,7 +28,7 @@ class UserTest < Minitest::Test
     assert_equal user.name, "Frederik Obermaier"
     assert_equal user.username, "f_obermaier"
     assert_equal user.location, "Threema FPN4FKZE  | PGP"
-    assert_equal user.description, "investigative journalist | pulitzer prize | received w @b_obermayer the @PanamaPapers #StracheVideo | deputy @sz_investigativ | @icijorg @acdatacollectiv"
+    assert user.description.include? "journalist"
     assert_equal user.url, "http://www.frederikobermaier.com"
     assert_kind_of Integer, user.followers_count
     assert_kind_of Integer, user.following_count

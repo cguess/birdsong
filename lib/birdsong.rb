@@ -40,9 +40,11 @@ module Birdsong
 
     # Get the file extension if it's in the file
     extension = url.split(".").last
+
     # Do some basic checks so we just empty out if there's something weird in the file extension
     # that could do some harm.
-    if extension.length > 0
+    if extension.length.positive?
+      extension = extension[0...extension.index("?")]
       extension = nil unless /^[a-zA-Z0-9]+$/.match?(extension)
       extension = ".#{extension}" unless extension.nil?
     end
@@ -61,5 +63,4 @@ private
     return if File.exist?(Birdsong.temp_storage_location) && File.directory?(Birdsong.temp_storage_location)
     FileUtils.mkdir_p Birdsong.temp_storage_location
   end
-
 end

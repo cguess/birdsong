@@ -59,23 +59,24 @@ module Birdsong
         media_items = []
       end
 
-      @image_file_names = media_items.map do |media_item|
+      @image_file_names = media_items.filter_map do |media_item|
         next unless media_item["type"] == "photo"
         Birdsong.retrieve_media(media_item["url"])
-      end.compact # compact because of the `next` above will return `nil`
+      end
 
-      @video_file_names = media_items.map do |media_item|
+      @video_file_names = media_items.filter_map do |media_item|
         next unless (media_item["type"] == "video") || (media_item["type"] == "animated_gif")
-       
+
         # If the media is video we need to fall back to V1 of the API since V2 doesn't support
         # videos yet. This is dumb, but not a big deal.
-        media_url = get_media_url_from_extended_entities()
+        media_url = get_media_url_from_extended_entities
+        media_preview_url = get_media_preview_url_from_extended_entities
         @video_file_type = media_item["type"]
 
         # We're returning an array because, in the case that someday more videos are available our
         # implementations won't breaks
-        [Birdsong.retrieve_media(media_url)]
-      end.compact # compact because of the `next` above will return `nil`
+        [{ url: Birdsong.retrieve_media(media_url), preview_url: Birdsong.retrieve_media(media_preview_url) }]
+      end
 
       # Look up the author given the new id.
       # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
@@ -84,10 +85,18 @@ module Birdsong
 
     # Used to extract a GIF or video URL from the extended entities object in the Twiter API response
     # Assumes (as is the case right now) that a Tweet cannot have more than one GIF/video
-    def get_media_url_from_extended_entities()
+    def get_media_url_from_extended_entities
       response = Tweet.retrieve_data_v1(@id)
       response = JSON.parse(response.body)
-      get_largest_variant_url(response["extended_entities"]["media"]) 
+      get_largest_variant_url(response["extended_entities"]["media"])
+    end
+
+    # Used to extract a GIF or video preview URL from the extended entities object in the Twiter API response
+    # Assumes (as is the case right now) that a Tweet cannot have more than one GIF/video
+    def get_media_preview_url_from_extended_entities
+      response = Tweet.retrieve_data_v1(@id)
+      response = JSON.parse(response.body)
+      response["extended_entities"]["media"].first["media_url_https"]
     end
 
     def get_largest_variant_url(media_items)
