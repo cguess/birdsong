@@ -36,6 +36,8 @@ module Birdsong
     attr_reader :video_file_names
     attr_reader :video_file_type
 
+    alias_method :user, :author # Every other gem uses `user` so we can just alias it
+
   private
 
     def initialize(json_tweet, includes)
@@ -66,7 +68,7 @@ module Birdsong
 
       @video_file_names = media_items.filter_map do |media_item|
         next unless (media_item["type"] == "video") || (media_item["type"] == "animated_gif")
-        
+
         # If the media is video we need to fall back to V1 of the API since V2 doesn't support
         # videos yet. This is dumb, but not a big deal.
         media_url = get_media_url_from_extended_entities
