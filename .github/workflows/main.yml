@@ -2,14 +2,13 @@ name: Ruby
 
 on: [push,pull_request]
 
-environment: CI
-
-env:
-  TWITTER_BEARER_TOKEN: '${{ secrets.TWITTER_BEARER_TOKEN }}'
 
 jobs:
   build:
+    environment: CI
     runs-on: ubuntu-latest
+    env:
+      TWITTER_BEARER_TOKEN: '${{ secrets.TWITTER_BEARER_TOKEN }}'
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
