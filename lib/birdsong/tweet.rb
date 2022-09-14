@@ -36,6 +36,8 @@ module Birdsong
     attr_reader :video_file_names
     attr_reader :video_file_type
 
+    alias_method :user, :author # Every other gem uses `user` so we can just alias it
+
   private
 
     def initialize(json_tweet, includes)

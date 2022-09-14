@@ -88,4 +88,9 @@ class TweetTest < Minitest::Test
     tweet = Birdsong::Tweet.lookup("1472873480249131012").first
     assert_not_nil tweet.video_file_names.first.first[:preview_url]
   end
+
+  def test_that_user_aliases_author
+    tweet = Birdsong::Tweet.lookup("1472873480249131012").first
+    assert_equal tweet.author, tweet.user
+  end
 end
