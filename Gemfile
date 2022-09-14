@@ -17,10 +17,6 @@ gem "rubocop-rails_config", "~> 1.8.1"
 
 gem "rubocop-performance", "~> 1.13.2"
 
-gem "rubocop-rails_config", "~> 1.8.1"
-
-gem "rubocop-performance", "~> 1.13.2"
-
 gem "dotenv", "~> 2.7.6"
 
 gem "byebug"

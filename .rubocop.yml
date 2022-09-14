@@ -1,5 +1,5 @@
 require:
-  - rubocop-performance
+  - rubocop-rails
 
 inherit_gem:
   rubocop-rails_config:
@@ -36,7 +36,7 @@ Layout/IndentationStyle:
 
 # Temporarily turn this off
 Metrics/AbcSize:
-  Enabled: true
+  Enabled: false
 
 Metrics/ClassLength:
   Enabled: true
@@ -61,3 +61,7 @@ Style/NumericPredicate:
 Layout/EmptyLinesAroundAccessModifier:
   Enabled: true
   EnforcedStyle: 'around'
+
+# We're not a Rails app, just using their style sheet
+Rails/AssertNot:
+  Enabled: false
