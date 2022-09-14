@@ -2,6 +2,8 @@ name: Ruby
 
 on: [push,pull_request]
 
+environment: CI
+
 env:
   TWITTER_BEARER_TOKEN: '${{ secrets.TWITTER_BEARER_TOKEN }}'
 
