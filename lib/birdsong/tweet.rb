@@ -8,6 +8,8 @@ module Birdsong
       # If a single id is passed in we make it the appropriate array
       ids = [ids] unless ids.kind_of?(Array)
 
+      # debugger if ids.first == "1329846849210114052"
+
       # Check that the ids are at least real ids
       ids.each { |id| raise Birdsong::InvalidIdError if !/\A\d+\z/.match(id) }
 
@@ -198,10 +200,12 @@ module Birdsong
 
 
     def self.check_for_errors(parsed_json)
-      return false unless parsed_json.keys.include?("errors")
+      return false unless parsed_json.key?("errors")
       return false if parsed_json["errors"].empty?
+
       parsed_json["errors"].each do |error|
-        if error["title"] == "Not Found Error"
+        # If the tweet is removed, or if the user is suspended you get an Authorization Error
+        if error["title"] == "Not Found Error" || error["title"] == "Authorization Error"
           raise Birdsong::NoTweetFoundError, "Tweet with id #{error["value"]} not found"
         end
       end

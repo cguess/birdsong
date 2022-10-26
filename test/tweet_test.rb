@@ -93,4 +93,10 @@ class TweetTest < Minitest::Test
     tweet = Birdsong::Tweet.lookup("1472873480249131012").first
     assert_equal tweet.author, tweet.user
   end
+
+  def test_that_a_tweet_with_a_suspended_author_works
+    assert_raises Birdsong::NoTweetFoundError do
+      Birdsong::Tweet.lookup("1329846849210114052").first
+    end
+  end
 end
