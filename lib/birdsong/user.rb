@@ -57,6 +57,7 @@ module Birdsong
 
       @description = json_user["description"]
       @url = json_user["url"]
+      @url = "https://www.twitter.com/#{@username}" if @url.nil?
       @followers_count = json_user["public_metrics"]["followers_count"]
       @following_count = json_user["public_metrics"]["following_count"]
       @tweet_count = json_user["public_metrics"]["tweet_count"]

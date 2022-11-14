@@ -13,6 +13,14 @@ class TweetTest < Minitest::Test
     tweets.each { |tweet| assert_instance_of Birdsong::Tweet, tweet }
   end
 
+  def test_that_a_tweet_with_a_nil_author_url_is_recreated
+    tweets = Birdsong::Tweet.lookup("1592186302379982849")
+
+    # This tweet's author url should not be nil anymore
+    tweets.each { |tweet| assert_instance_of Birdsong::Tweet, tweet }
+    tweets.each { |tweet| assert_not_nil tweet.author.url }
+  end
+
   def test_that_a_tweet_raises_exception_with_invalid_id
     assert_raises Birdsong::InvalidIdError do
       Birdsong::Tweet.lookup("abcdef")
