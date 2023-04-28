@@ -114,19 +114,20 @@ GEM
 
 PLATFORMS
   arm64-darwin-21
+  arm64-darwin-22
   x86_64-darwin-20
   x86_64-linux
 
 DEPENDENCIES
   birdsong!
   byebug
-  dotenv (~> 2.7.6)
-  minitest (~> 5.0)
-  rake (~> 13.0)
-  rubocop (~> 1.7)
-  rubocop-performance (~> 1.13.2)
-  rubocop-rails (~> 2.9.1)
-  rubocop-rails_config (~> 1.8.1)
+  dotenv
+  minitest
+  rake
+  rubocop
+  rubocop-performance
+  rubocop-rails
+  rubocop-rails_config
 
 BUNDLED WITH
    2.3.3

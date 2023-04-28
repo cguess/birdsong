@@ -8,16 +8,13 @@ module Birdsong
 
       # Check that the ids are at least real ids
       ids.each { |id| raise Birdsong::InvalidIdError if !/\A\d+\z/.match(id) }
+      self.lookup_primative(ids: ids)
+    end
 
-      response = self.retrieve_data(ids)
-      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
-
-      json_response = JSON.parse(response.body)
-      return [] if json_response["data"].nil?
-
-      json_response["data"].map do |json_user|
-        User.new(json_user)
-      end
+    def self.lookup_by_usernames(usernames = [])
+      # If a single id is passed in we make it the appropriate array
+      usernames = [usernames] unless usernames.kind_of?(Array)
+      self.lookup_primative(usernames: usernames)
     end
 
     # Attributes for after the response is parsed from Twitter
@@ -66,25 +63,53 @@ module Birdsong
       @profile_image_file_name = Birdsong.retrieve_media(@profile_image_url)
     end
 
-    def self.retrieve_data(ids)
-      bearer_token = ENV["TWITTER_BEARER_TOKEN"]
+    def self.lookup_primative(usernames: nil, ids: nil)
+      raise Birdsong::InvalidIdError if usernames.nil? && ids.nil? # can't pass in nothing
+      raise Birdsong::InvalidIdError if usernames.nil? == false && ids.nil? == false # don't pass in both
 
-      user_lookup_url = "https://api.twitter.com/2/users"
+      response = self.retrieve_data(ids: ids, usernames: usernames)
 
-      # Specify the User IDs that you want to lookup below (to 100 per request)
-      user_ids = ids.join(",")
+      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
+
+      json_response = JSON.parse(response.body)
+      return [] if json_response["data"].nil?
+
+      json_response["data"].map do |json_user|
+        User.new(json_user)
+      end
+    end
+
+    def self.retrieve_data(usernames: nil, ids: nil)
+      bearer_token = Birdsong.twitter_bearer_token
+
+      raise Birdsong::InvalidIdError if usernames.nil? && ids.nil? # can't pass in nothing
+      raise Birdsong::InvalidIdError if usernames.nil? == false && ids.nil? == false # don't pass in both
 
       # Add or remove optional parameters values from the params object below. Full list of parameters and their values can be found in the docs:
       # https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference
       params = {
-        "ids": user_ids,
         "expansions": "pinned_tweet_id",
         "tweet.fields": Birdsong.tweet_fields,
         "user.fields": Birdsong.user_fields,
       }
 
+      if usernames.nil? == false
+        user_lookup_url = "https://api.twitter.com/2/users/by"
+        # Specify the Usernames that you want to lookup below (to 100 per request)
+        params["usernames"] = usernames.join(",")
+      elsif ids.nil? == false
+        user_lookup_url = "https://api.twitter.com/2/users"
+        # Specify the User IDs that you want to lookup below (to 100 per request)
+        params["ids"] = ids.join(",")
+      end
+
       response = self.user_lookup(user_lookup_url, bearer_token, params)
-      # puts response.code, JSON.pretty_generate(JSON.parse(response.body))
+
+      raise Birdsong::RateLimitExceeded.new(
+        response.headers["x-rate-limit-limit"],
+        response.headers["x-rate-limit-remaining"],
+        response.headers["x-rate-limit-reset"]
+      ) if response.code === 429
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
 
       response
@@ -102,6 +127,12 @@ module Birdsong
 
       request = Typhoeus::Request.new(url, options)
       response = request.run
+
+      raise Birdsong::RateLimitExceeded.new(
+        response.headers["x-rate-limit-limit"],
+        response.headers["x-rate-limit-remaining"],
+        response.headers["x-rate-limit-reset"]
+      ) if response.code === 429
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
 
       response

@@ -3,7 +3,6 @@
 require "json"
 require "typhoeus"
 require "date"
-require "byebug"
 require "securerandom"
 require "helpers/configuration"
 require "fileutils"
@@ -20,8 +19,23 @@ module Birdsong
   class InvalidIdError < Error; end
   class InvalidMediaTypeError < Error; end
   class NoTweetFoundError < Error; end
+  class RateLimitExceeded < Error
+    attr_reader :rate_limit
+    attr_reader :rate_remaining
+    attr_reader :reset_time_left
+
+    def initialize(rate_limit, rate_remaining, reset_time)
+      @rate_limit = rate_limit
+      @rate_remaining = rate_remaining
+      @reset_time_left = reset_time.to_i - Time.now.to_i
+
+      super("Rate Limit Exceeded: Limit #{rate_limit}, Remaining #{rate_remaining}, Time Left #{reset_time_left}")
+    end
+  end
 
   define_setting :temp_storage_location, "tmp/birdsong"
+  define_setting :twitter_bearer_token, ENV["TWITTER_BEARER_TOKEN"]
+  define_setting :save_media, true
 
   # The general fields to always return for Users
   def self.user_fields
@@ -36,6 +50,8 @@ module Birdsong
   # Get media from a URL and save to a temp folder set in the configuration under
   # temp_storage_location
   def self.retrieve_media(url)
+    return "" if !Birdsong.save_media
+
     response = Typhoeus.get(url)
 
     # Get the file extension if it's in the file

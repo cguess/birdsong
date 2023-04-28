@@ -14,7 +14,7 @@ class TweetTest < Minitest::Test
   end
 
   def test_that_a_tweet_with_a_nil_author_url_is_recreated
-    tweets = Birdsong::Tweet.lookup("1592186302379982849")
+    tweets = Birdsong::Tweet.lookup("1651942285620256772")
 
     # This tweet's author url should not be nil anymore
     tweets.each { |tweet| assert_instance_of Birdsong::Tweet, tweet }
