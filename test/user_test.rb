@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "date"
+require "debug"
 
 class UserTest < Minitest::Test
   def teardown
@@ -34,10 +35,15 @@ class UserTest < Minitest::Test
     assert_kind_of Integer, user.following_count
     assert_kind_of Integer, user.tweet_count
     assert_kind_of Integer, user.listed_count
-    assert user.verified
+    assert user.verified == false
     assert user.profile_image_file_name.empty? == false
 
     # Make sure the file is created properly
     assert File.exist?(user.profile_image_file_name) && File.file?(user.profile_image_file_name)
+  end
+
+  def test_that_a_verified_user_is_probably_marked
+    user = Birdsong::User.lookup_by_usernames("JulieWillbanks1").first
+    assert user.verified
   end
 end

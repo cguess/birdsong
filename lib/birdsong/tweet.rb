@@ -1,14 +1,10 @@
 # frozen_string_literal: true
 
-require "byebug"
-
 module Birdsong
   class Tweet
     def self.lookup(ids = [])
       # If a single id is passed in we make it the appropriate array
       ids = [ids] unless ids.kind_of?(Array)
-
-      # debugger if ids.first == "1329846849210114052"
 
       # Check that the ids are at least real ids
       ids.each { |id| raise Birdsong::InvalidIdError if !/\A\d+\z/.match(id) }
@@ -123,7 +119,7 @@ module Birdsong
     end
 
     def self.retrieve_data_v2(ids)
-      bearer_token = ENV["TWITTER_BEARER_TOKEN"]
+      bearer_token = Birdsong.twitter_bearer_token
 
       tweet_lookup_url = "https://api.twitter.com/2/tweets"
 
@@ -161,6 +157,11 @@ module Birdsong
       request = Typhoeus::Request.new(url, options)
       response = request.run
 
+      raise Birdsong::RateLimitExceeded.new(
+        response.headers["x-rate-limit-limit"],
+        response.headers["x-rate-limit-remaining"],
+        response.headers["x-rate-limit-reset"]
+      ) if response.code === 429
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code === 200
 
       response
@@ -168,11 +169,16 @@ module Birdsong
 
     # Note that unlike the V2 this only supports one url at a time
     def self.retrieve_data_v1(id)
-      bearer_token = ENV["TWITTER_BEARER_TOKEN"]
+      bearer_token = Birdsong.twitter_bearer_token
 
       tweet_lookup_url = "https://api.twitter.com/1.1/statuses/show.json?tweet_mode=extended&id=#{id}"
 
       response = tweet_lookup_v1(tweet_lookup_url, bearer_token)
+      raise Birdsong::RateLimitExceeded.new(
+        response.headers["x-rate-limit-limit"],
+        response.headers["x-rate-limit-remaining"],
+        response.headers["x-rate-limit-reset"]
+      ) if response.code === 429
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code === 200
 
       response
@@ -193,6 +199,11 @@ module Birdsong
       request = Typhoeus::Request.new(url, options)
       response = request.run
 
+      raise Birdsong::RateLimitExceeded.new(
+        response.headers["x-rate-limit-limit"],
+        response.headers["x-rate-limit-remaining"],
+        response.headers["x-rate-limit-reset"]
+      ) if response.code === 429
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code === 200
 
       response

@@ -29,10 +29,19 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Uncomment to register a new dependency of your gem
-  # spec.add_dependency "example-gem", "~> 1.0"
+  # Prod dependencies
   spec.add_dependency "typhoeus", "~> 1.4.0"
   spec.add_dependency "oauth", "~> 0.5.6"
+
+  # Dev dependencies
+  spec.add_development_dependency "byebug"
+  spec.add_development_dependency "rake"
+  spec.add_development_dependency "minitest"
+  spec.add_development_dependency "rubocop"
+  spec.add_development_dependency "rubocop-rails"
+  spec.add_development_dependency "rubocop-rails_config"
+  spec.add_development_dependency "rubocop-performance"
+  spec.add_development_dependency "dotenv"
 
   # For more information and examples about making a new gem, checkout our
   # guide at: https://bundler.io/guides/creating_gem.html
