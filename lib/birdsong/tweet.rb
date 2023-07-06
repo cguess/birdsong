@@ -74,20 +74,18 @@ module Birdsong
 
       media_items = json_tweet["mediaDetails"]
 
-      return if media_items.nil?
+      return if media_items.nil? || media_items.empty?
 
-      media_items = media_items.first
+      # media_items = media_items.first
       # Check if it's a video or image/images
-      if !media_items.has_key?("video_info")
-        @image_file_names = [media_items["media_url_https"]]
-        Birdsong.retrieve_media(@image_file_names.first)
-        # TODO: add support for slideshows here
-        # @image_file_names = media_items.filter_map do |media_item|
-        #   debugger
-        #   url = media_item["media_url_https"]
-        #   Birdsong.retrieve_media(url)
-        # end
+      if !media_items.first.has_key?("video_info")
+        @image_file_names = media_items.filter_map do |media_item|
+          url = media_item["media_url_https"]
+          Birdsong.retrieve_media(url)
+          url
+        end
       else
+        media_items = media_items.first
         largest_variant = get_largest_variant(media_items)
 
         unless largest_variant.nil?
