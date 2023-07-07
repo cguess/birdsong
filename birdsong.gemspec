@@ -32,6 +32,11 @@ Gem::Specification.new do |spec|
   # Prod dependencies
   spec.add_dependency "typhoeus", "~> 1.4.0"
   spec.add_dependency "oauth", "~> 0.5.6"
+  spec.add_dependency "capybara" # For scraping and running browsers
+  spec.add_dependency "apparition" # A Chrome driver for Capybara
+  spec.add_dependency "oj" # A faster JSON parser/loader than stdlib
+  spec.add_dependency "selenium-webdriver" # Webdriver selenium
+  spec.add_dependency "selenium-devtools" # Allow us to intercept requests
 
   # Dev dependencies
   spec.add_development_dependency "byebug"
