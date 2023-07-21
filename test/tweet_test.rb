@@ -10,6 +10,8 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_is_created_with_id
     tweets = Birdsong::Tweet.lookup("1378268627615543296")
+    assert_not_nil tweets
+    assert_equal 1, tweets.count
     tweets.each { |tweet| assert_instance_of Birdsong::Tweet, tweet }
   end
 
@@ -29,11 +31,11 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_has_correct_attributes
     tweet = Birdsong::Tweet.lookup("1378268627615543296").first
-    assert_equal tweet.id, "1378268627615543296"
-    assert_equal tweet.created_at, DateTime.parse("2021-04-03T08:50:22.000Z")
-    assert_equal tweet.text, "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko"
-    assert_equal tweet.language, "en"
-    assert_equal tweet.author.name, "Frederik Obermaier"
+    assert_equal "1378268627615543296", tweet.id
+    assert_equal DateTime.parse("2021-04-03T08:50:22.000Z"), tweet.created_at
+    assert_equal "Five years ago... #PanamaPapers #OnThisDay @ICIJorg @SZ https://t.co/hLMVuYOk3D https://t.co/8uJkbb6Pko", tweet.text
+    assert_equal "en", tweet.language
+    assert_equal "Frederik Obermaier", tweet.author.name
   end
 
   def test_that_a_tweet_cant_be_found_works
