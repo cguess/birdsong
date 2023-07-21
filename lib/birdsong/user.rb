@@ -43,9 +43,9 @@ module Birdsong
     end
 
     def parse(json_user)
-      @id = json_user["id"]
+      @id = json_user["id"].to_s
       @name = json_user["name"]
-      @username = json_user["username"]
+      @username = json_user["screen_name"]
       @created_at = DateTime.parse(json_user["created_at"])
       @location = json_user["location"]
 
@@ -55,52 +55,48 @@ module Birdsong
       @description = json_user["description"]
       @url = json_user["url"]
       @url = "https://www.twitter.com/#{@username}" if @url.nil?
-      @followers_count = json_user["public_metrics"]["followers_count"]
-      @following_count = json_user["public_metrics"]["following_count"]
-      @tweet_count = json_user["public_metrics"]["tweet_count"]
-      @listed_count = json_user["public_metrics"]["listed_count"]
-      @verified = json_user["verified"]
+
+      @followers_count = json_user["followers_count"]
+      @following_count = json_user["friends_count"]
+      @tweet_count = json_user["statuses_count"]
+      @listed_count = json_user["listed_count"]
+      @verified = json_user["verified"] # this will always be `false` but we're keeping it here for compatibility
       @profile_image_file_name = Birdsong.retrieve_media(@profile_image_url)
     end
 
-    def self.lookup_primative(usernames: nil, ids: nil)
-      raise Birdsong::InvalidIdError if usernames.nil? && ids.nil? # can't pass in nothing
-      raise Birdsong::InvalidIdError if usernames.nil? == false && ids.nil? == false # don't pass in both
+    def self.lookup_primative(usernames: [], ids: [])
+      raise Birdsong::InvalidIdError if usernames.empty? && ids.empty? # can't pass in nothing
 
-      response = self.retrieve_data(ids: ids, usernames: usernames)
+      if usernames.empty? == false
+        response = usernames.map { |username| self.retrieve_data(username: username) }
+      elsif ids.empty? == false
+        response = ids.map { |id| self.retrieve_data(id: id) }
+      else
+        raise Birdsong::InvalidIdError
+      end
 
-      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
+      json_response = response.map { |r| JSON.parse(r.body) }
 
-      json_response = JSON.parse(response.body)
-      return [] if json_response["data"].nil?
-
-      json_response["data"].map do |json_user|
+      json_response.map do |json_user|
         User.new(json_user)
       end
     end
 
-    def self.retrieve_data(usernames: nil, ids: nil)
+    def self.retrieve_data(username: nil, id: nil)
       bearer_token = Birdsong.twitter_bearer_token
 
-      raise Birdsong::InvalidIdError if usernames.nil? && ids.nil? # can't pass in nothing
-      raise Birdsong::InvalidIdError if usernames.nil? == false && ids.nil? == false # don't pass in both
+      raise Birdsong::InvalidIdError if username.nil? && id.nil? # can't pass in nothing
+      raise Birdsong::InvalidIdError if username.nil? == false && id.nil? == false # don't pass in both
 
-      # Add or remove optional parameters values from the params object below. Full list of parameters and their values can be found in the docs:
-      # https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference
-      params = {
-        "expansions": "pinned_tweet_id",
-        "tweet.fields": Birdsong.tweet_fields,
-        "user.fields": Birdsong.user_fields,
-      }
+      user_lookup_url = "https://api.twitter.com/1.1/users/show.json"
 
-      if usernames.nil? == false
-        user_lookup_url = "https://api.twitter.com/2/users/by"
+      params = {}
+      if username.nil? == false
         # Specify the Usernames that you want to lookup below (to 100 per request)
-        params["usernames"] = usernames.join(",")
-      elsif ids.nil? == false
-        user_lookup_url = "https://api.twitter.com/2/users"
+        params["screen_name"] = username
+      elsif id.nil? == false
         # Specify the User IDs that you want to lookup below (to 100 per request)
-        params["ids"] = ids.join(",")
+        params["user_id"] = id
       end
 
       response = self.user_lookup(user_lookup_url, bearer_token, params)
@@ -110,6 +106,7 @@ module Birdsong
         response.headers["x-rate-limit-remaining"],
         response.headers["x-rate-limit-reset"]
       ) if response.code === 429
+      raise Birdsong::NoTweetFoundError, "User with id #{id} or username #{username} not found" if response.code === 404
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
 
       response

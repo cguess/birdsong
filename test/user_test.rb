@@ -2,7 +2,6 @@
 
 require "test_helper"
 require "date"
-require "debug"
 
 class UserTest < Minitest::Test
   def teardown
@@ -25,7 +24,7 @@ class UserTest < Minitest::Test
     user = Birdsong::User.lookup("404661154").first
     assert_equal user.id, "404661154"
     assert_equal user.created_at, DateTime.parse("2011-11-04T07:18:35.000Z")
-    assert_equal user.profile_image_url, "https://pbs.twimg.com/profile_images/1140973306889277440/q3P0CIh6.jpg"
+    assert_equal user.profile_image_url, "http://pbs.twimg.com/profile_images/1140973306889277440/q3P0CIh6.jpg"
     assert_equal user.name, "Frederik Obermaier"
     assert_equal user.username, "f_obermaier"
     assert_equal user.location, "Threema FPN4FKZE  | PGP"
@@ -42,8 +41,9 @@ class UserTest < Minitest::Test
     assert File.exist?(user.profile_image_file_name) && File.file?(user.profile_image_file_name)
   end
 
-  def test_that_a_verified_user_is_probably_marked
-    user = Birdsong::User.lookup_by_usernames("JulieWillbanks1").first
-    assert user.verified
-  end
+  # `verified` is always false since the weird Musk decisions, so we're going to comment this out
+  # def test_that_a_verified_user_is_probably_marked
+  #   user = Birdsong::User.lookup_by_usernames("Alphafox78").first
+  #   assert user.verified
+  # end
 end

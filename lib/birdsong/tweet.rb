@@ -9,16 +9,13 @@ module Birdsong
       # Check that the ids are at least real ids
       ids.each { |id| raise Birdsong::InvalidIdError if !/\A\d+\z/.match(id) }
 
-      response = self.retrieve_data_v2(ids)
-      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code == 200
+      response = ids.map { |id| self.retrieve_data_v1(id) }
 
-      json_response = JSON.parse(response.body)
+      json_response = response.map { |r| JSON.parse(r.body) }
       check_for_errors(json_response)
 
-      return [] if json_response["data"].nil?
-
-      json_response["data"].map do |json_tweet|
-        Tweet.new(json_tweet, json_response["includes"])
+      json_response.map do |json_tweet|
+        Tweet.new(json_tweet)
       end
     end
 
@@ -38,23 +35,21 @@ module Birdsong
 
   private
 
-    def initialize(json_tweet, includes)
+    def initialize(json_tweet)
       @json = json_tweet
-      parse(json_tweet, includes)
+      parse(json_tweet)
     end
 
-    def parse(json_tweet, includes)
-      @id = json_tweet["id"]
+    def parse(json_tweet)
+      @id = json_tweet["id"].to_s
       @created_at = DateTime.parse(json_tweet["created_at"])
-      @text = json_tweet["text"]
+      @text = json_tweet["full_text"]
       @language = json_tweet["lang"]
-      @author_id = json_tweet["author_id"]
+      @author_id = json_tweet["user"]["id"]
 
       # A sanity check to make sure we have media in there correctly
-      if includes.has_key? "media"
-        media_items = includes["media"].filter do |media_item|
-          json_tweet["attachments"]["media_keys"].include? media_item["media_key"]
-        end
+      if json_tweet["extended_entities"]&.has_key?("media")
+        media_items = json_tweet["extended_entities"]["media"]
       else
         media_items = []
       end
@@ -69,8 +64,8 @@ module Birdsong
 
         # If the media is video we need to fall back to V1 of the API since V2 doesn't support
         # videos yet. This is dumb, but not a big deal.
-        media_url = get_media_url_from_extended_entities
-        media_preview_url = get_media_preview_url_from_extended_entities
+        media_url = get_largest_variant_url(media_items)
+        media_preview_url = media_items.first["media_url_https"]
         @video_file_type = media_item["type"]
 
         # We're returning an array because, in the case that someday more videos are available our
@@ -80,23 +75,7 @@ module Birdsong
 
       # Look up the author given the new id.
       # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
-      @author = User.lookup(@author_id).first
-    end
-
-    # Used to extract a GIF or video URL from the extended entities object in the Twiter API response
-    # Assumes (as is the case right now) that a Tweet cannot have more than one GIF/video
-    def get_media_url_from_extended_entities
-      response = Tweet.retrieve_data_v1(@id)
-      response = JSON.parse(response.body)
-      get_largest_variant_url(response["extended_entities"]["media"])
-    end
-
-    # Used to extract a GIF or video preview URL from the extended entities object in the Twiter API response
-    # Assumes (as is the case right now) that a Tweet cannot have more than one GIF/video
-    def get_media_preview_url_from_extended_entities
-      response = Tweet.retrieve_data_v1(@id)
-      response = JSON.parse(response.body)
-      response["extended_entities"]["media"].first["media_url_https"]
+      @author = User.lookup(@author_id.to_s).first
     end
 
     def get_largest_variant_url(media_items)
@@ -116,55 +95,6 @@ module Birdsong
         end
       end
       largest_bitrate_variant["url"]
-    end
-
-    def self.retrieve_data_v2(ids)
-      bearer_token = Birdsong.twitter_bearer_token
-
-      tweet_lookup_url = "https://api.twitter.com/2/tweets"
-
-      # Specify the Tweet IDs that you want to lookup below (to 100 per request)
-      tweet_ids = ids.join(",")
-
-      # Add or remove optional parameters values from the params object below. Full list of parameters and their values can be found in the docs:
-      # https://developer.twitter.com/en/docs/twitter-api/tweets/lookup/api-reference
-      params = {
-        "ids": tweet_ids,
-        "expansions": "attachments.media_keys,author_id,referenced_tweets.id",
-        "tweet.fields": Birdsong.tweet_fields,
-        "user.fields": Birdsong.user_fields,
-        "media.fields": "duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width",
-        "place.fields": "country_code",
-        "poll.fields": "options"
-      }
-
-      response = tweet_lookup_v2(tweet_lookup_url, bearer_token, params)
-      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code === 200
-
-      response
-    end
-
-    def self.tweet_lookup_v2(url, bearer_token, params)
-      options = {
-        method: "get",
-        headers: {
-          "User-Agent": "v2TweetLookupRuby",
-          "Authorization": "Bearer #{bearer_token}"
-        },
-        params: params
-      }
-
-      request = Typhoeus::Request.new(url, options)
-      response = request.run
-
-      raise Birdsong::RateLimitExceeded.new(
-        response.headers["x-rate-limit-limit"],
-        response.headers["x-rate-limit-remaining"],
-        response.headers["x-rate-limit-reset"]
-      ) if response.code === 429
-      raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code === 200
-
-      response
     end
 
     # Note that unlike the V2 this only supports one url at a time
@@ -204,6 +134,16 @@ module Birdsong
         response.headers["x-rate-limit-remaining"],
         response.headers["x-rate-limit-reset"]
       ) if response.code === 429
+
+      raise Birdsong::NoTweetFoundError, "Tweet with id #{url} not found" if response.code === 404
+      if response.code === 403
+        json = JSON.parse(response.body)
+        if json.has_key?("errors")
+          json["errors"].each do |error|
+            raise Birdsong::NoTweetFoundError, "User with id #{url} suspended" if error["code"] == 63
+          end
+        end
+      end
       raise Birdsong::AuthorizationError, "Invalid response code #{response.code}" unless response.code === 200
 
       response
@@ -211,13 +151,15 @@ module Birdsong
 
 
     def self.check_for_errors(parsed_json)
-      return false unless parsed_json.key?("errors")
-      return false if parsed_json["errors"].empty?
+      parsed_json.each do |json|
+        next unless json.key?("errors")
+        next if json["errors"].empty?
 
-      parsed_json["errors"].each do |error|
-        # If the tweet is removed, or if the user is suspended you get an Authorization Error
-        if error["title"] == "Not Found Error" || error["title"] == "Authorization Error"
-          raise Birdsong::NoTweetFoundError, "Tweet with id #{error["value"]} not found"
+        json["errors"].each do |error|
+          # If the tweet is removed, or if the user is suspended you get an Authorization Error
+          if error["title"] == "Not Found Error" || error["title"] == "Authorization Error"
+            raise Birdsong::NoTweetFoundError, "Tweet with id #{error["value"]} not found"
+          end
         end
       end
       false
