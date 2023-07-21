@@ -2,7 +2,6 @@
 
 require "test_helper"
 require "date"
-require "debug"
 
 class UserTest < Minitest::Test
   def teardown
