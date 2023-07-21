@@ -6,7 +6,6 @@ require "date"
 require "securerandom"
 require "helpers/configuration"
 require "fileutils"
-require "debug"
 
 require_relative "birdsong/version"
 require_relative "birdsong/tweet"
