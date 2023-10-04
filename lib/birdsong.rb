@@ -10,6 +10,11 @@ require "fileutils"
 require_relative "birdsong/version"
 require_relative "birdsong/tweet"
 require_relative "birdsong/user"
+require_relative "birdsong/scrapers/scraper"
+require_relative "birdsong/scrapers/tweet_scraper"
+require_relative "birdsong/twitter_guest_key"
+
+require_relative "birdsong/monkeypatch"
 
 module Birdsong
   extend Configuration

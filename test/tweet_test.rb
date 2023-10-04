@@ -76,7 +76,7 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_can_have_a_video_preview
     tweet = Birdsong::Tweet.lookup("1407342630837657605").first
-    assert_not_nil tweet.video_file_names.first.first[:preview_url]
+    assert_not_nil tweet.video_preview_image
   end
 
   def test_that_a_tweet_handles_no_variants_for_video
@@ -96,7 +96,7 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_can_have_a_gif_preview
     tweet = Birdsong::Tweet.lookup("1472873480249131012").first
-    assert_not_nil tweet.video_file_names.first.first[:preview_url]
+    assert_not_nil tweet.video_preview_image
   end
 
   def test_that_user_aliases_author
@@ -104,7 +104,7 @@ class TweetTest < Minitest::Test
     assert_equal tweet.author, tweet.user
   end
 
-  def test_that_a_tweet_with_a_suspended_author_works
+  def test_that_a_tweet_with_a_suspended_author_fails
     assert_raises Birdsong::NoTweetFoundError do
       Birdsong::Tweet.lookup("1329846849210114052").first
     end
