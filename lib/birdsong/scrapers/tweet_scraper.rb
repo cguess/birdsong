@@ -20,7 +20,7 @@ module Birdsong
       # login
       graphql_object = get_content_of_subpage_from_url(
         "https://twitter.com/jack/status/#{id}",
-        "/i/api/graphql",
+        "/graphql",
         "data,tweetResult,result"
       )
 

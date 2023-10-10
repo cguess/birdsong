@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+# A note: Some of these will fail non-deterministically. This is because Twitter/X is a shit show and
+# their servers fail all the time. In that case, we just throw an error which should be caught
+# (going to usually be Selenium::WebDriver::Error::NoSuchElementError) by whatever is using this library
+# and retry later.
+
 require "test_helper"
 require "date"
 
@@ -108,5 +113,9 @@ class TweetTest < Minitest::Test
     assert_raises Birdsong::NoTweetFoundError do
       Birdsong::Tweet.lookup("1329846849210114052").first
     end
+  end
+
+  def test_another_url
+    tweet = Birdsong::Tweet.lookup("1552221138037755904")
   end
 end

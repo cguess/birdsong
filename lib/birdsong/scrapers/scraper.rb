@@ -68,9 +68,12 @@ module Birdsong
       page.driver.browser.intercept do |request, &continue|
         # This passes the request forward unmodified, since we only care about the response
         # puts "checking request: #{request.url}"
+
         continue.call(request) && next unless request.url.include?(subpage_search)
 
+
         continue.call(request) do |response|
+
           # Check if not a CORS prefetch and finish up if not
           if !response.body.empty? && response.body
             check_passed = true
@@ -217,4 +220,4 @@ module Birdsong
   end
 end
 
-require_relative "tweet_scraper"
+# require_relative "tweet_scraper"
