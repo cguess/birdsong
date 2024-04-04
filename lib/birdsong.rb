@@ -23,6 +23,7 @@ module Birdsong
   class InvalidIdError < Error; end
   class InvalidMediaTypeError < Error; end
   class NoTweetFoundError < Error; end
+  class WebDriverError < Error; end
   class RateLimitExceeded < Error
     attr_reader :rate_limit
     attr_reader :rate_remaining
