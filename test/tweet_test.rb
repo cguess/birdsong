@@ -51,7 +51,7 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_can_have_no_media
     tweet = Birdsong::Tweet.lookup("20").first
-    assert_equal tweet.id, "20"
+    assert_equal "20", tweet.id
     assert_not_nil tweet.image_file_names
     assert_equal 0, tweet.image_file_names.count
     assert_equal 0, tweet.video_file_names.count
@@ -116,6 +116,10 @@ class TweetTest < Minitest::Test
   end
 
   def test_another_url
-    tweet = Birdsong::Tweet.lookup("1552221138037755904")
+    Birdsong::Tweet.lookup("1552221138037755904")
+  end
+
+  def test_another_url_2
+    tweet = Birdsong::Tweet.lookup("1775419979871162733")
   end
 end

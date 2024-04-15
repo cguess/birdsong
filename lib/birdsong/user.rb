@@ -30,7 +30,7 @@ module Birdsong
     def parse(user_object)
       @id = user_object[:id]
       @name = user_object[:name]
-      @username = user_object[:screen_name]
+      @username = user_object[:username]
       @created_at = DateTime.parse(user_object[:sign_up_date])
       @location = user_object[:location]
 
@@ -42,8 +42,8 @@ module Birdsong
       @url = "https://www.twitter.com/#{@username}" if @url.nil?
 
       @followers_count = user_object[:followers_count]
-      @following_count = user_object[:friends_count]
-      @tweet_count = user_object[:statuses_count]
+      @following_count = user_object[:following_count]
+      @tweet_count = user_object[:tweet_count]
       @listed_count = user_object[:listed_count]
       @verified = user_object[:verified] # this will always be `false` but we're keeping it here for compatibility
       @profile_image_file_name = Birdsong.retrieve_media(@profile_image_url)

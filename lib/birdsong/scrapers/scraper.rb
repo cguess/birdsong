@@ -94,6 +94,7 @@ module Birdsong
         end
       rescue Selenium::WebDriver::Error::WebDriverError
         # Eat them
+      rescue Birdsong::WebDriverError
       end
 
       # Now that the intercept is set up, we visit the page we want
@@ -111,6 +112,7 @@ module Birdsong
 
       raise Birdsong::NoTweetFoundError if response_body.nil?
       Oj.load(response_body)
+    rescue Birdsong::WebDriverError
     end
 
   private
