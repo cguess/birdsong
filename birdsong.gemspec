@@ -32,6 +32,11 @@ Gem::Specification.new do |spec|
   # Prod dependencies
   spec.add_dependency "typhoeus", "~> 1.4.0"
   spec.add_dependency "oauth", "~> 0.5.6"
+  spec.add_dependency "oj", "~> 3.16", ">= 3.16.3"
+  spec.add_dependency "capybara", "~> 3.40"
+  spec.add_dependency "selenium-webdriver", "~> 4.21", ">= 4.21.1"
+  spec.add_dependency "curb", "~> 1.0", ">= 1.0.5"
+  spec.add_dependency "selenium-devtools"
 
   # Dev dependencies
   spec.add_development_dependency "byebug"

@@ -120,6 +120,6 @@ class TweetTest < Minitest::Test
   end
 
   def test_another_url_2
-    tweet = Birdsong::Tweet.lookup("1775419979871162733")
+    Birdsong::Tweet.lookup("1775419979871162733")
   end
 end

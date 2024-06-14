@@ -7,7 +7,7 @@ require "selenium-webdriver"
 require "logger"
 require "securerandom"
 require "selenium/webdriver/remote/http/curb"
-require "debug"
+# require "debug"
 
 # 2022-06-07 14:15:23 WARN Selenium [DEPRECATION] [:browser_options] :options as a parameter for driver initialization is deprecated. Use :capabilities with an Array of value capabilities/options if necessary instead.
 
