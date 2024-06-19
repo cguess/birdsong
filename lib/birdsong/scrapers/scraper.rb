@@ -148,11 +148,11 @@ module Birdsong
     #   page.quit
 
     #   # Check if we're on a Instagram page already, if not visit it.
-    #   unless page.driver.browser.current_url.include? "twitter.com"
+    #   unless page.driver.browser.current_url.include? "twitter.com" || page.driver.browser.current_url.include? "x.com"
     #     # There seems to be a bug in the Linux ARM64 version of chromedriver where this will properly
     #     # navigate but then timeout, crashing it all up. So instead we check and raise the error when
     #     # that then fails again.
-    #     page.driver.browser.navigate.to("https://twitter.com")
+    #     page.driver.browser.navigate.to("https://x.com")
     #   end
 
       # # We don't have to login if we already are

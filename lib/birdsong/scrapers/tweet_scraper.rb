@@ -14,12 +14,12 @@ module Birdsong
       # - Number of likes *
       # - Hashtags
 
-      Capybara.app_host = "https://twitter.com"
+      Capybara.app_host = "https://x.com"
 
       # video slideshows https://www.instagram.com/p/CY7KxwYOFBS/?utm_source=ig_embed&utm_campaign=loading
       # login
       graphql_object = get_content_of_subpage_from_url(
-        "https://twitter.com/jack/status/#{id}",
+        "https://x.com/jack/status/#{id}",
         "/graphql",
         "data,tweetResult,result"
       )

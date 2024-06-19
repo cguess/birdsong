@@ -39,7 +39,7 @@ module Birdsong
 
       @description = user_object[:description]
       @url = user_object[:url]
-      @url = "https://www.twitter.com/#{@username}" if @url.nil?
+      @url = "https://www.x.com/#{@username}" if @url.nil?
 
       @followers_count = user_object[:followers_count]
       @following_count = user_object[:following_count]
