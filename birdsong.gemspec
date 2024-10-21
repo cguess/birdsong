@@ -47,6 +47,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rubocop-rails_config"
   spec.add_development_dependency "rubocop-performance"
   spec.add_development_dependency "dotenv"
+  spec.add_development_dependency "solargraph"
 
   # For more information and examples about making a new gem, checkout our
   # guide at: https://bundler.io/guides/creating_gem.html

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "byebug"
+
 # A note: Some of these will fail non-deterministically. This is because Twitter/X is a shit show and
 # their servers fail all the time. In that case, we just throw an error which should be caught
 # (going to usually be Selenium::WebDriver::Error::NoSuchElementError) by whatever is using this library
@@ -120,6 +122,28 @@ class TweetTest < Minitest::Test
   end
 
   def test_another_url_2
-    Birdsong::Tweet.lookup("1775419979871162733")
+    Birdsong::Tweet.lookup("1848168783057232074")
+  end
+
+  def test_mixed_media_posts
+    Birdsong::Tweet.lookup("1835567947252634020")
+  end
+
+  def test_a_very_weird_one
+    # https://x.com/EndWokeness/status/1835873305670128099?fbclid=IwY2xjawFY-lBleHRuA2FlbQIxMAABHbeSiI97zlbJqXzozcpL4_21e2JrEi1zD7kI4Q3CQnHfpKkvzqLBZcPaQQ_aem_psyDRKvN0sUOOdPrQ7QOog
+    Birdsong::Tweet.lookup("1835873305670128099")
+  end
+
+  def test_a_post_with_mixed_media
+    # https://x.com/SaadAbedine/status/1831611300356428158
+    tweet = Birdsong::Tweet.lookup("1831611300356428158")
+    assert tweet.first.video_file_names.count == 1
+    assert tweet.first.image_file_names.count == 1
+  end
+
+  def test_a_post_with_multiple_videos
+    # https://x.com/MohdAlzamar/status/1846893674703045048
+    tweet = Birdsong::Tweet.lookup("1846893674703045048")
+    assert tweet.first.video_file_names.count == 4
   end
 end

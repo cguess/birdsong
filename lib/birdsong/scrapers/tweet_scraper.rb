@@ -20,15 +20,29 @@ module Birdsong
       # login
       graphql_object = get_content_of_subpage_from_url(
         "https://x.com/jack/status/#{id}",
-        "/graphql",
+        "/TweetResultByRestId",
         "data,tweetResult,result"
       )
 
       graphql_object = graphql_object.first if graphql_object.kind_of?(Array)
       graphql_object = graphql_object["data"]["tweetResult"]["result"]
 
+      raise Birdsong::NoTweetFoundError if graphql_object.nil?
+
       if graphql_object.key?("__typename") && graphql_object["__typename"] == "TweetUnavailable"
-        raise Birdsong::NoTweetFoundError
+        raise Birdsong::NoTweetFoundError if graphql_object["reason"] != "NsfwLoggedOut"
+        @@logger.info "Post is tagged NSFW, logging in to access..."
+        # Let's login and start this over?
+        login
+        @@logger.info "Logged in, retrying post..."
+
+        graphql_object = get_content_of_subpage_from_url(
+          "https://x.com/jack/status/#{id}",
+          "/TweetDetail"
+        )
+
+        # The format gets weird for this request
+        graphql_object = graphql_object["data"]["threaded_conversation_with_injections_v2"]["instructions"][0]["entries"][0]["content"]["itemContent"]["tweet_results"]["result"]["tweet"]
       end
 
       text = graphql_object["legacy"]["full_text"]
@@ -51,7 +65,7 @@ module Birdsong
             video_preview_image = Birdsong.retrieve_media(media["media_url_https"])
             video_variants = media["video_info"]["variants"]
             largest_bitrate_variant = video_variants.sort_by do |variant|
-              variant["bitrate"].nil? ? 0 : variant["bitrate"]
+              variant.has_key?("bitrate") ? variant["bitrate"] : 0
             end.last
 
             videos << Birdsong.retrieve_media(largest_bitrate_variant["url"])
@@ -106,7 +120,9 @@ module Birdsong
       # First check if a post has a fact check overlay, if so, clear it.
       # The only issue is that this can take *awhile* to search. Not sure what to do about that
       # since it's Instagram's fault for having such a fucked up obfuscated hierarchy      # Take the screenshot and return it
+      # rubocop:disable Lint/Debugger
       save_screenshot("#{Birdsong.temp_storage_location}/instagram_screenshot_#{SecureRandom.uuid}.png")
+      # rubocop:enable Lint/Debugger
     end
   end
 end

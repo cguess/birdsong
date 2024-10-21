@@ -67,14 +67,11 @@ module Birdsong
 
       page.driver.browser.intercept do |request, &continue|
         # This passes the request forward unmodified, since we only care about the response
-        # puts "checking request: #{request.url}"
-
         continue.call(request) && next unless request.url.include?(subpage_search)
 
-
         continue.call(request) do |response|
-
           # Check if not a CORS prefetch and finish up if not
+          # puts "checking request: #{request.url}"
           if !response.body.empty? && response.body
             check_passed = true
             unless additional_search_parameters.nil?
@@ -110,6 +107,7 @@ module Birdsong
 
       page.driver.execute_script("window.stop();")
 
+      # debugger if response_body.nil?
       raise Birdsong::NoTweetFoundError if response_body.nil?
       Oj.load(response_body)
     rescue Birdsong::WebDriverError
@@ -143,49 +141,65 @@ module Birdsong
       Capybara.current_driver = :selenium
     end
 
-    # def login
-    #   # Reset the sessions so that there's nothing laying around
-    #   page.quit
+    def login
+      # Reset the sessions so that there's nothing laying around
+      page.quit
 
-    #   # Check if we're on a Instagram page already, if not visit it.
-    #   unless page.driver.browser.current_url.include? "twitter.com" || page.driver.browser.current_url.include? "x.com"
-    #     # There seems to be a bug in the Linux ARM64 version of chromedriver where this will properly
-    #     # navigate but then timeout, crashing it all up. So instead we check and raise the error when
-    #     # that then fails again.
-    #     page.driver.browser.navigate.to("https://x.com")
-    #   end
+      # Check if we're on a Twitter page already, if not visit it.
+      unless page.driver.browser.current_url.include?("twitter.com") || page.driver.browser.current_url.include?("x.com")
+        # There seems to be a bug in the Linux ARM64 version of chromedriver where this will properly
+        # navigate but then timeout, crashing it all up. So instead we check and raise the error when
+        # that then fails again.
+        page.driver.browser.navigate.to("https://x.com")
+      end
 
-      # # We don't have to login if we already are
-      # begin
-      #   return if find_field("Search", wait: 10).present?
-      # rescue Capybara::ElementNotFound; end
+      # We don't have to login if we already are
+      begin
+        return if find_field("Search", wait: 10).present?
+      rescue Capybara::ElementNotFound; end
 
-      # # Check if we're redirected to a login page, if we aren't we're already logged in
+      page.driver.browser.find_element(link_text: "Sign in").click      # Check if we're redirected to a login page, if we aren't we're already logged in
+
       # return unless page.has_xpath?('//*[@id="loginForm"]/div/div[3]/button')
 
-      # # Try to log in
-      # loop_count = 0
-      # while loop_count < 5 do
-      #   fill_in("username", with: ENV["TWITTER_USER_NAME"])
-      #   fill_in("password", with: ENV["TWITTER_PASSWORD"])
+      # Try to log in
+      loop_count = 0
+      while loop_count < 5 do
+        3.times do
+          sleep(rand * 8.8)
+          element = page.driver.browser.find_element(tag_name: "input", name: "text")
+          next if element.nil?
+          element.click
+          break
+        rescue StandardError => e
+          puts e
+          next
+        end
 
-      #   begin
-      #     click_button("Log in", exact_text: true) # Note: "Log in" (lowercase `in`) instead redirects to Facebook's login page
-      #   rescue Capybara::ElementNotFound; end # If we can't find it don't break horribly, just keep waiting
+        sleep(rand * 2.8)
+        fill_in("text", with: ENV["TWITTER_USER_NAME"])
+        sleep(rand * 2.8)
+        find_button("Next").click
+        sleep(rand * 2.1)
+        fill_in("password", with: ENV["TWITTER_PASSWORD"])
 
-      #   break unless has_css?('p[data-testid="login-error-message"', wait: 10)
-      #   loop_count += 1
-      #   sleep(rand * 10.3)
-      # end
+        begin
+          click_button("Log in", exact_text: true) # Note: "Log in" (lowercase `in`) instead redirects to Facebook's login page
+        rescue Capybara::ElementNotFound; end # If we can't find it don't break horribly, just keep waiting
 
-      # # Sometimes Instagram just... doesn't let you log in
-      # raise "Instagram not accessible" if loop_count == 5
+        break unless has_css?('p[data-testid="login-error-message"', wait: 10)
+        loop_count += 1
+        sleep(rand * 10.3)
+      end
 
-      # # No we don't want to save our login credentials
-      # begin
-      #   click_on("Save Info")
-      # rescue Capybara::ElementNotFound; end
-    # end
+      # Sometimes Twitter just... doesn't let you log in
+      raise "Twitter not accessible" if loop_count == 5
+
+      # No we don't want to save our login credentials
+      begin
+        click_on("Save Info")
+      rescue Capybara::ElementNotFound; end
+    end
 
     def fetch_image(url)
       request = Typhoeus::Request.new(url, followlocation: true)
