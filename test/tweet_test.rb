@@ -122,4 +122,11 @@ class TweetTest < Minitest::Test
   def test_another_url_2
     Birdsong::Tweet.lookup("1775419979871162733")
   end
+
+  def test_multiple_video_in_tweet
+    tweet = Birdsong::Tweet.lookup("1850522383863390392").first
+    assert_not_nil tweet.video_file_names
+    assert_equal 0, tweet.image_file_names.count
+    assert_equal 2, tweet.video_file_names.count
+  end
 end

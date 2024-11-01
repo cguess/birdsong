@@ -2,6 +2,7 @@
 
 require "typhoeus"
 require_relative "scraper"
+require "debug"
 
 module Birdsong
   class TweetScraper < Scraper
@@ -30,6 +31,9 @@ module Birdsong
       if graphql_object.key?("__typename") && graphql_object["__typename"] == "TweetUnavailable"
         raise Birdsong::NoTweetFoundError
       end
+
+      # Certain types of tweets are wrapped in a "tweet" object
+      graphql_object = graphql_object["tweet"] if graphql_object.key?("tweet")
 
       text = graphql_object["legacy"]["full_text"]
       date = graphql_object["legacy"]["created_at"]
@@ -106,7 +110,9 @@ module Birdsong
       # First check if a post has a fact check overlay, if so, clear it.
       # The only issue is that this can take *awhile* to search. Not sure what to do about that
       # since it's Instagram's fault for having such a fucked up obfuscated hierarchy      # Take the screenshot and return it
+      # rubocop:disable Lint/Debugger
       save_screenshot("#{Birdsong.temp_storage_location}/instagram_screenshot_#{SecureRandom.uuid}.png")
+      # rubocop:enable Link/Debugger
     end
   end
 end
