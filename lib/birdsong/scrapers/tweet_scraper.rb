@@ -2,6 +2,7 @@
 
 require "typhoeus"
 require_relative "scraper"
+require "debug"
 
 module Birdsong
   class TweetScraper < Scraper
@@ -44,6 +45,9 @@ module Birdsong
         # The format gets weird for this request
         graphql_object = graphql_object["data"]["threaded_conversation_with_injections_v2"]["instructions"][0]["entries"][0]["content"]["itemContent"]["tweet_results"]["result"]["tweet"]
       end
+
+      # Certain types of tweets are wrapped in a "tweet" object
+      graphql_object = graphql_object["tweet"] if graphql_object.key?("tweet")
 
       text = graphql_object["legacy"]["full_text"]
       date = graphql_object["legacy"]["created_at"]

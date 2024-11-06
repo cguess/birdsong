@@ -108,6 +108,7 @@ module Birdsong
       page.driver.execute_script("window.stop();")
 
       # debugger if response_body.nil?
+
       raise Birdsong::NoTweetFoundError if response_body.nil?
       Oj.load(response_body)
     rescue Birdsong::WebDriverError

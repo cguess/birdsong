@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "byebug"
-
 # A note: Some of these will fail non-deterministically. This is because Twitter/X is a shit show and
 # their servers fail all the time. In that case, we just throw an error which should be caught
 # (going to usually be Selenium::WebDriver::Error::NoSuchElementError) by whatever is using this library
@@ -143,7 +141,25 @@ class TweetTest < Minitest::Test
 
   def test_a_post_with_multiple_videos
     # https://x.com/MohdAlzamar/status/1846893674703045048
-    tweet = Birdsong::Tweet.lookup("1846893674703045048")
-    assert tweet.first.video_file_names.count == 4
+    tweet = Birdsong::Tweet.lookup("1850522383863390392")
+    assert_equal 2, tweet.first.video_file_names.count
+  end
+
+  def test_multiple_video_in_tweet
+    tweet = Birdsong::Tweet.lookup("1850522383863390392").first
+    assert_not_nil tweet.video_file_names
+    assert_equal 0, tweet.image_file_names.count
+    assert_equal 2, tweet.video_file_names.count
+  end
+
+  def test_a_post_with_an_image_and_video
+    tweet = Birdsong::Tweet.lookup("1851408978544132410")
+    assert tweet.first.video_file_names.count == 1
+    assert tweet.first.image_file_names.count == 1
+  end
+
+  def test_another_post_with_video
+    tweet = Birdsong::Tweet.lookup("1852022814066303034")
+    assert tweet.first.video_file_names.count == 1
   end
 end
