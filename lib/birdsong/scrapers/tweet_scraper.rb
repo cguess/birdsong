@@ -116,7 +116,8 @@ module Birdsong
         user: user,
         id: id,
         language: language,
-        video_file_type: video_file_type
+        video_file_type: video_file_type,
+        screenshot_file: screenshot_file
       }
     end
 
@@ -125,7 +126,7 @@ module Birdsong
       # The only issue is that this can take *awhile* to search. Not sure what to do about that
       # since it's Instagram's fault for having such a fucked up obfuscated hierarchy      # Take the screenshot and return it
       # rubocop:disable Lint/Debugger
-      save_screenshot("#{Birdsong.temp_storage_location}/instagram_screenshot_#{SecureRandom.uuid}.png")
+      save_screenshot("#{Birdsong.temp_storage_location}/twitter_screenshot_#{SecureRandom.uuid}.png")
       # rubocop:enable Lint/Debugger
     end
   end
