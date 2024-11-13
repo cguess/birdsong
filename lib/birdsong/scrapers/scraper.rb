@@ -202,6 +202,11 @@ module Birdsong
       rescue Capybara::ElementNotFound; end
     end
 
+    def logout
+      page.driver.browser.navigate.to("https://x.com/logout")
+      click_button("Log out", exact_text: true)
+    end
+
     def fetch_image(url)
       request = Typhoeus::Request.new(url, followlocation: true)
       request.on_complete do |response|

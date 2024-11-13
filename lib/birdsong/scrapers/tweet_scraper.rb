@@ -42,6 +42,7 @@ module Birdsong
           "/TweetDetail"
         )
 
+        logout
         # The format gets weird for this request
         graphql_object = graphql_object["data"]["threaded_conversation_with_injections_v2"]["instructions"][0]["entries"][0]["content"]["itemContent"]["tweet_results"]["result"]["tweet"]
       end
@@ -76,7 +77,7 @@ module Birdsong
             video_file_type = "video"
           when "animated_gif"
             video_preview_image = Birdsong.retrieve_media(media["media_url_https"])
-            videos << media["video_info"]["variants"].first["url"]
+            videos << Birdsong.retrieve_media(media["video_info"]["variants"].first["url"])
             video_file_type = "animated_gif"
           end
         end
