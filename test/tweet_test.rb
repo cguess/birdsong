@@ -220,15 +220,19 @@ class TweetTest < Minitest::Test
 
   def test_multiple_video_in_tweet_2
     tweet = Birdsong::Tweet.lookup("1853732129697415386").first
-    assert_not_nil tweet.video_file_names
-    assert_equal 1, tweet.image_file_names.count
-    assert_equal 2, tweet.video_file_names.count
+    assert_not_nil tweet.videos
+    assert_equal 1, tweet.images.count
+    assert_equal 2, tweet.videos.count
 
-    tweet.video_file_names.each do |video_name|
+    tweet.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
 
-    tweet.image_file_names.each do |image_name|
+    tweet.video_preview_images do |image_name|
+      assert File.size(image_name) > 1000
+    end
+
+    tweet.images.each do |image_name|
       assert File.size(image_name) > 1000
     end
   end

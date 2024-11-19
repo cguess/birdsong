@@ -58,7 +58,7 @@ module Birdsong
 
       images = []
       videos = []
-      video_preview_image = nil
+      video_preview_images = []
       video_file_type = nil
 
       if graphql_object["legacy"]["entities"].key?("media")
@@ -67,7 +67,7 @@ module Birdsong
           when "photo"
             images << Birdsong.retrieve_media(media["media_url_https"])
           when "video"
-            video_preview_image = Birdsong.retrieve_media(media["media_url_https"])
+            video_preview_images << Birdsong.retrieve_media(media["media_url_https"])
             video_variants = media["video_info"]["variants"]
             largest_bitrate_variant = video_variants.sort_by do |variant|
               variant.has_key?("bitrate") ? variant["bitrate"] : 0
@@ -76,7 +76,7 @@ module Birdsong
             videos << Birdsong.retrieve_media(largest_bitrate_variant["url"])
             video_file_type = "video"
           when "animated_gif"
-            video_preview_image = Birdsong.retrieve_media(media["media_url_https"])
+            video_preview_images << Birdsong.retrieve_media(media["media_url_https"])
             videos << Birdsong.retrieve_media(media["video_info"]["variants"].first["url"])
             video_file_type = "animated_gif"
           end
@@ -106,10 +106,11 @@ module Birdsong
 
       page.quit
 
+
       {
         images: images,
-        video: videos,
-        video_preview_image: video_preview_image,
+        videos: videos,
+        video_preview_images: video_preview_images,
         screenshot_file: screenshot_file,
         text: text,
         date: date,

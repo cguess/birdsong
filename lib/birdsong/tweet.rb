@@ -24,10 +24,10 @@ module Birdsong
     attr_reader :language
     attr_reader :author_id
     attr_reader :author
-    attr_reader :image_file_names
-    attr_reader :video_file_names
+    attr_reader :images
+    attr_reader :videos
     attr_reader :video_file_type
-    attr_reader :video_preview_image
+    attr_reader :video_preview_images
     attr_reader :screenshot_file
 
     alias_method :user, :author # Every other gem uses `user` so we can just alias it
@@ -40,11 +40,10 @@ module Birdsong
       @text = tweet_object[:text]
       @language = tweet_object[:language]
       @author_id = tweet_object[:user][:id]
-
-      @image_file_names = tweet_object[:images]
-      @video_file_names = tweet_object[:video]
+      @images = tweet_object[:images]
+      @videos = tweet_object[:videos]
       @video_file_type = tweet_object[:video_file_type]
-      @video_preview_image = tweet_object[:video_preview_image]
+      @video_preview_images = tweet_object[:video_preview_images]
       @screenshot_file = tweet_object[:screenshot_file]
       # Look up the author given the new id.
       # NOTE: This doesn't *seem* like the right place for this, but I"m not sure where else
