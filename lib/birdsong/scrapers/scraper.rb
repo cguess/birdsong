@@ -100,14 +100,25 @@ module Birdsong
       start_time = Time.now
       # puts "Waiting.... #{url}"
 
-      sleep(rand(1...10))
+      sleep(rand(10...20))
       while response_body.nil? && (Time.now - start_time) < 60
         sleep(0.1)
       end
 
-      page.driver.execute_script("window.stop();")
+      if response_body.nil?
+        puts "Logging in and refreshing"
+        login
+        sleep(rand(5..10))
+        page.driver.browser.navigate.to(url)
 
-      # debugger if response_body.nil?
+        start_time = Time.now
+        sleep(rand(10...20))
+        while response_body.nil? && (Time.now - start_time) < 60
+          sleep(0.1)
+        end
+      end
+
+      page.driver.execute_script("window.stop();")
 
       raise Birdsong::NoTweetFoundError if response_body.nil?
       Oj.load(response_body)

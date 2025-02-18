@@ -52,39 +52,39 @@ class TweetTest < Minitest::Test
   def test_that_a_tweet_can_have_no_media
     tweet = Birdsong::Tweet.lookup("20").first
     assert_equal "20", tweet.id
-    assert_not_nil tweet.image_file_names
-    assert_equal 0, tweet.image_file_names.count
-    assert_equal 0, tweet.video_file_names.count
+    assert_not_nil tweet.images
+    assert_equal 0, tweet.images.count
+    assert_equal 0, tweet.videos.count
   end
 
   def test_that_a_tweet_can_have_a_single_image
     tweet = Birdsong::Tweet.lookup("1407341650737762304").first
-    assert_not_nil tweet.image_file_names
-    assert_equal 1, tweet.image_file_names.count
-    assert_equal 0, tweet.video_file_names.count
+    assert_not_nil tweet.images
+    assert_equal 1, tweet.images.count
+    assert_equal 0, tweet.videos.count
 
-    tweet.image_file_names.each do |image_name|
+    tweet.images.each do |image_name|
           assert File.size(image_name) > 1000
         end
   end
 
   def test_that_a_tweet_can_have_a_slideshow
     tweet = Birdsong::Tweet.lookup("1407322444399099904").first
-    assert_not_nil tweet.image_file_names
-    assert_equal 4, tweet.image_file_names.count
-    assert_equal 0, tweet.video_file_names.count
-    tweet.image_file_names.each do |image_name|
+    assert_not_nil tweet.images
+    assert_equal 4, tweet.images.count
+    assert_equal 0, tweet.videos.count
+    tweet.images.each do |image_name|
       assert File.size(image_name) > 1000
     end
   end
 
   def test_that_a_tweet_can_have_a_video
     tweet = Birdsong::Tweet.lookup("1407342630837657605").first
-    assert_not_nil tweet.video_file_names
-    assert_equal 1, tweet.video_file_names.count
-    assert_equal 0, tweet.image_file_names.count
+    assert_not_nil tweet.videos
+    assert_equal 1, tweet.videos.count
+    assert_equal 0, tweet.images.count
     assert_equal "video", tweet.video_file_type
-    tweet.video_file_names.each do |video_name|
+    tweet.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
   end
@@ -96,21 +96,21 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_handles_no_variants_for_video
     tweet = Birdsong::Tweet.lookup("1258817692448051200").first
-    assert_not_nil tweet.video_file_names
-    assert_equal 1, tweet.video_file_names.count
-    assert_equal 0, tweet.image_file_names.count
-    tweet.video_file_names.each do |video_name|
+    assert_not_nil tweet.videos
+    assert_equal 1, tweet.videos.count
+    assert_equal 0, tweet.images.count
+    tweet.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
   end
 
   def test_that_a_tweet_can_have_a_gif
     tweet = Birdsong::Tweet.lookup("1472873480249131012").first
-    assert_not_nil tweet.video_file_names
-    assert_equal 0, tweet.image_file_names.count
-    assert_equal 1, tweet.video_file_names.count
+    assert_not_nil tweet.videos
+    assert_equal 0, tweet.images.count
+    assert_equal 1, tweet.videos.count
     assert_equal "animated_gif", tweet.video_file_type
-    tweet.video_file_names.each do |video_name|
+    tweet.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
   end
@@ -151,56 +151,56 @@ class TweetTest < Minitest::Test
   def test_a_post_with_mixed_media
     # https://x.com/SaadAbedine/status/1831611300356428158
     tweet = Birdsong::Tweet.lookup("1831611300356428158")
-    assert tweet.first.video_file_names.count == 1
-    assert tweet.first.image_file_names.count == 1
+    assert tweet.first.videos.count == 1
+    assert tweet.first.images.count == 1
 
-    tweet.first.video_file_names.each do |video_name|
+    tweet.first.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
 
-    tweet.first.image_file_names.each do |image_name|
+    tweet.first.images.each do |image_name|
       assert File.size(image_name) > 1000
     end
   end
 
   def test_multiple_video_in_tweet
     tweet = Birdsong::Tweet.lookup("1856091059664891951").first
-    assert_not_nil tweet.video_file_names
-    assert_equal 0, tweet.image_file_names.count
-    assert_equal 4, tweet.video_file_names.count
+    assert_not_nil tweet.videos
+    assert_equal 0, tweet.images.count
+    assert_equal 4, tweet.videos.count
 
-    tweet.video_file_names.each do |video_name|
+    tweet.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
   end
 
   def test_a_post_with_an_image_and_video
     tweet = Birdsong::Tweet.lookup("1851408978544132410")
-    assert tweet.first.video_file_names.count == 1
-    assert tweet.first.image_file_names.count == 1
+    assert tweet.first.videos.count == 1
+    assert tweet.first.images.count == 1
 
-    tweet.first.video_file_names.each do |video_name|
+    tweet.first.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
 
-    tweet.first.image_file_names.each do |image_name|
+    tweet.first.images.each do |image_name|
       assert File.size(image_name) > 1000
     end
   end
 
   def test_another_post_with_video
     tweet = Birdsong::Tweet.lookup("1852022814066303034")
-    assert tweet.first.video_file_names.count == 1
-    tweet.first.video_file_names.each do |video_name|
+    assert tweet.first.videos.count == 1
+    tweet.first.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
   end
 
   def test_another_post_with_video_2
     tweet = Birdsong::Tweet.lookup("1854422698106986902")
-    assert tweet.first.video_file_names.count == 1
+    assert tweet.first.videos.count == 1
     assert_not_nil tweet.first.screenshot_file
-    tweet.first.video_file_names.each do |video_name|
+    tweet.first.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
 
@@ -209,9 +209,9 @@ class TweetTest < Minitest::Test
 
   def test_another_post_with_video_3
     tweet = Birdsong::Tweet.lookup("1854706125306003730")
-    assert tweet.first.video_file_names.count == 1
+    assert tweet.first.videos.count == 1
     assert_not_nil tweet.first.screenshot_file
-    tweet.first.video_file_names.each do |video_name|
+    tweet.first.videos.each do |video_name|
       assert File.size(video_name) > 1000
     end
 
@@ -234,6 +234,15 @@ class TweetTest < Minitest::Test
 
     tweet.images.each do |image_name|
       assert File.size(image_name) > 1000
+    end
+  end
+
+  def test_yet_another_link
+    tweet = Birdsong::Tweet.lookup("1854422698106986902").first
+    assert_not_nil(tweet)
+
+    tweet.videos.each do |video_name|
+      assert File.size(video_name) > 1000
     end
   end
 end
