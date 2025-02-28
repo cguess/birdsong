@@ -19,33 +19,20 @@ module Birdsong
 
       # video slideshows https://www.instagram.com/p/CY7KxwYOFBS/?utm_source=ig_embed&utm_campaign=loading
       # login
-      graphql_object = get_content_of_subpage_from_url(
-        "https://x.com/jack/status/#{id}",
-        "/TweetResultByRestId",
-        "data,tweetResult,result"
-      )
-
-      graphql_object = graphql_object.first if graphql_object.kind_of?(Array)
-      graphql_object = graphql_object["data"]["tweetResult"]["result"]
+      if is_logged_in?(id)
+        graphql_object = get_logged_in_content_of_subpage_for_id(id)
+      else
+        # If we're logged out we'll try a few paths
+        graphql_object = get_logged_out_content_of_subpage_for_id(id)
+        if graphql_object.nil? || graphql_object.key?("__typename") && graphql_object["__typename"] == "TweetUnavailable"
+          # If the tweet is unavailable, we need to login to access it
+          login
+          @@logger.info "Logged in, retrying post..."
+          graphql_object = get_logged_in_content_of_subpage_for_id(id)
+        end
+      end
 
       raise Birdsong::NoTweetFoundError if graphql_object.nil?
-
-      if graphql_object.key?("__typename") && graphql_object["__typename"] == "TweetUnavailable"
-        raise Birdsong::NoTweetFoundError if graphql_object["reason"] != "NsfwLoggedOut"
-        @@logger.info "Post is tagged NSFW, logging in to access..."
-        # Let's login and start this over?
-        login
-        @@logger.info "Logged in, retrying post..."
-
-        graphql_object = get_content_of_subpage_from_url(
-          "https://x.com/jack/status/#{id}",
-          "/TweetDetail"
-        )
-
-        logout
-        # The format gets weird for this request
-        graphql_object = graphql_object["data"]["threaded_conversation_with_injections_v2"]["instructions"][0]["entries"][0]["content"]["itemContent"]["tweet_results"]["result"]["tweet"]
-      end
 
       # Certain types of tweets are wrapped in a "tweet" object
       graphql_object = graphql_object["tweet"] if graphql_object.key?("tweet")
@@ -121,6 +108,36 @@ module Birdsong
         video_file_type: video_file_type,
         screenshot_file: screenshot_file
       }
+    end
+
+    def get_logged_out_content_of_subpage_for_id(id)
+      graphql_object = get_content_of_subpage_from_url(
+        "https://x.com/jack/status/#{id}",
+        "/TweetResultByRestId",
+        "data,tweetResult,result"
+      )
+
+      graphql_object = graphql_object.first if graphql_object.kind_of?(Array)
+      graphql_object = graphql_object["data"]["tweetResult"]["result"]
+
+      graphql_object
+    rescue Birdsong::NoTweetFoundError
+      nil
+    end
+
+    def get_logged_in_content_of_subpage_for_id(id)
+      graphql_object = get_content_of_subpage_from_url("https://x.com/jack/status/#{id}", "/TweetDetail") do |response_body|
+        response_body["data"]["threaded_conversation_with_injections_v2"]["instructions"][0]["entries"][0]["content"]["itemContent"]["tweet_results"]["result"]
+        true
+      rescue StandardError
+        false
+      end
+
+
+      # The format gets weird for this request
+      graphql_object["data"]["threaded_conversation_with_injections_v2"]["instructions"][0]["entries"][0]["content"]["itemContent"]["tweet_results"]["result"]
+    rescue Birdsong::NoTweetFoundError
+      nil
     end
 
     def take_screenshot

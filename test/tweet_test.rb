@@ -91,7 +91,7 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_can_have_a_video_preview
     tweet = Birdsong::Tweet.lookup("1407342630837657605").first
-    assert_not_nil tweet.video_preview_image
+    assert !tweet.video_preview_images.empty?
   end
 
   def test_that_a_tweet_handles_no_variants_for_video
@@ -117,7 +117,7 @@ class TweetTest < Minitest::Test
 
   def test_that_a_tweet_can_have_a_gif_preview
     tweet = Birdsong::Tweet.lookup("1472873480249131012").first
-    assert_not_nil tweet.video_preview_image
+    assert !tweet.video_preview_images.empty?
   end
 
   def test_that_user_aliases_author
@@ -208,7 +208,7 @@ class TweetTest < Minitest::Test
   end
 
   def test_another_post_with_video_3
-    tweet = Birdsong::Tweet.lookup("1854706125306003730")
+    tweet = Birdsong::Tweet.lookup("1895544658799038933")
     assert tweet.first.videos.count == 1
     assert_not_nil tweet.first.screenshot_file
     tweet.first.videos.each do |video_name|

@@ -52,7 +52,7 @@ module Birdsong
     # example: `data,xdt_api__v1__media__shortcode__web_info,items`
     #
     # @returns Hash a ruby hash of the JSON data
-    def get_content_of_subpage_from_url(url, subpage_search, additional_search_parameters = nil)
+    def get_content_of_subpage_from_url(url, subpage_search, additional_search_parameters = nil, &block)
       # So this is fun:
       # For pages marked as misinformation we have to use one method (interception of requrest) and
       # for pages that are not, we can just pull the data straight from the page.
@@ -71,10 +71,13 @@ module Birdsong
 
         continue.call(request) do |response|
           # Check if not a CORS prefetch and finish up if not
-          # puts "checking request: #{request.url}"
+          puts "checking request: #{request.url}"
+          puts "for subpage: #{subpage_search}"
           if !response.body.empty? && response.body
+            puts "passed"
             check_passed = true
             unless additional_search_parameters.nil?
+              puts "checking additional search parameters #{additional_search_parameters}"
               body_to_check = Oj.load(response.body)
 
               search_parameters = additional_search_parameters.split(",")
@@ -86,6 +89,10 @@ module Birdsong
               end
             end
 
+            unless check_passed == false || !block_given?
+              check_passed = block.call(JSON.parse(response.body))
+            end
+
             response_body = response.body if check_passed == true
           end
         end
@@ -94,6 +101,7 @@ module Birdsong
       rescue Birdsong::WebDriverError
       end
 
+      load_saved_cookies
       # Now that the intercept is set up, we visit the page we want
       page.driver.browser.navigate.to(url)
       # We wait until the correct intercept is processed or we've waited 60 seconds
@@ -105,20 +113,21 @@ module Birdsong
         sleep(0.1)
       end
 
-      if response_body.nil?
-        puts "Logging in and refreshing"
-        login
-        sleep(rand(5..10))
-        page.driver.browser.navigate.to(url)
+      # if response_body.nil?
+      #   puts "Logging in and refreshing"
+      #   login
+      #   sleep(rand(5..10))
+      #   page.driver.browser.navigate.to(url)
 
-        start_time = Time.now
-        sleep(rand(10...20))
-        while response_body.nil? && (Time.now - start_time) < 60
-          sleep(0.1)
-        end
-      end
+      #   start_time = Time.now
+      #   sleep(rand(10...20))
+      #   while response_body.nil? && (Time.now - start_time) < 60
+      #     sleep(0.1)
+      #   end
+      # end
 
       page.driver.execute_script("window.stop();")
+      save_cookies
 
       raise Birdsong::NoTweetFoundError if response_body.nil?
       Oj.load(response_body)
@@ -153,22 +162,40 @@ module Birdsong
       Capybara.current_driver = :selenium
     end
 
+    def is_logged_in?(id = nil)
+      load_saved_cookies
+      # Check if we're on a Twitter page already, if not visit it.
+      if id.nil?
+        page.driver.browser.navigate.to("https://x.com")
+      else
+        page.driver.browser.navigate.to("https://x.com/jack/status/#{id}") # We may be logged in already?
+      end
+
+      # unless page.driver.browser.current_url.include?("twitter.com") || page.driver.browser.current_url.include?("x.com")
+      #   # There seems to be a bug in the Linux ARM64 version of chromedriver where this will properly
+      #   # navigate but then timeout, crashing it all up. So instead we check and raise the error when
+      #   # that then fails again.
+      #   if id.nil?
+      #     page.driver.browser.navigate.to("https://x.com")
+      #   else
+      #     page.driver.browser.navigate.to("https://x.com/jack/status/#{id}") # We may be logged in already?
+      #   end
+      # end
+
+      # We don't have to login if we already are
+      begin
+        return true if find_field("Search", wait: 10)
+      rescue Capybara::ElementNotFound; end
+
+      false
+    end
+
     def login
       # Reset the sessions so that there's nothing laying around
       page.quit
 
-      # Check if we're on a Twitter page already, if not visit it.
-      unless page.driver.browser.current_url.include?("twitter.com") || page.driver.browser.current_url.include?("x.com")
-        # There seems to be a bug in the Linux ARM64 version of chromedriver where this will properly
-        # navigate but then timeout, crashing it all up. So instead we check and raise the error when
-        # that then fails again.
-        page.driver.browser.navigate.to("https://x.com")
-      end
-
-      # We don't have to login if we already are
-      begin
-        return if find_field("Search", wait: 10).present?
-      rescue Capybara::ElementNotFound; end
+      # If we already have files, do it
+      return if is_logged_in?
 
       page.driver.browser.find_element(link_text: "Sign in").click      # Check if we're redirected to a login page, if we aren't we're already logged in
 
@@ -207,6 +234,8 @@ module Birdsong
       # Sometimes Twitter just... doesn't let you log in
       raise "Twitter not accessible" if loop_count == 5
 
+      # Save the logged in cookies for restoring later
+      save_cookies
       # No we don't want to save our login credentials
       begin
         click_on("Save Info")
@@ -250,6 +279,26 @@ module Birdsong
 
       # Multiply everything and insure we get an integer back
       (number * multiplier).to_i
+    end
+
+    def save_cookies
+      cookies_json = page.driver.browser.manage.all_cookies.to_json
+      File.write("birdsong_cookies.json", cookies_json)
+    end
+
+    def load_saved_cookies
+      return unless File.exist?("birdsong_cookies.json")
+      page.driver.browser.navigate.to("https://x.com")
+
+      cookies_json = File.read("birdsong_cookies.json")
+      cookies = JSON.parse(cookies_json, symbolize_names: true)
+      cookies.each do |cookie|
+        cookie[:expires] = Time.parse(cookie[:expires]) unless cookie[:expires].nil?
+        begin
+          page.driver.browser.manage.add_cookie(cookie)
+        rescue StandardError
+        end
+      end
     end
   end
 end
